@@ -141,6 +141,7 @@ final class social_monster
 					}
 					return $dir."/comments.php";
 				}
+				else return $dir."/comments.php";
 				break;
 		}
 	}
