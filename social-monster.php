@@ -129,7 +129,7 @@ final class social_monster
 			";
 					$foot="
 			Social Monster
-			<script type=\"text/javascript\"></script>
+			<script type=\"text/javascript\">social_monster.newInstance(1)</script>
 		</div>
 		<!--/Social Monster-->
 ";
