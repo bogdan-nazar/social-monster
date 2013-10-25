@@ -30,7 +30,11 @@ final class social_monster
 	private $config			=	array(
 		"wp-template-tm"	=>	300,
 		"template"			=>	"default",
-		"update"			=>	"manual"
+		"update"			=>	"manual",
+		"section_vk"		=>	array(
+			"appId"			=>	"3952643",
+			"width"			=>	0, //0 - auto
+		)
 	);
 	private $dirBase		=	"";
 	private $dirInc			=	"";
@@ -126,10 +130,26 @@ final class social_monster
 					$head="<?php defined(\"SOCIAL_MONSTER_ON\") or die(\"Error\");?>
 		<!--Social Monster-->
 		<div class=\"".$this->class."\">
+			<div id=\"".$this->name."-natural\" style=\"display:none;\">
 			";
 					$foot="
+			</div>
+			<div>
+				<!-- Put this script tag to the <head> of your page -->
+				<script type=\"text/javascript\" src=\"//vk.com/js/api/openapi.js?101\"></script>
+
+				<script type=\"text/javascript\">
+				  VK.init({apiId: 3952643, onlyWidgets: true});
+				</script>
+
+				<!-- Put this div tag to the place, where the Comments block will be -->
+				<div id=\"vk_comments\"></div>
+				<script type=\"text/javascript\">
+				VK.Widgets.Comments(\"vk_comments\", {limit: 10, width: \"496\", attach: \"*\"});
+				</script>
+			</div>
 			Social Monster
-			<script type=\"text/javascript\">social_monster.newInstance(1)</script>
+			<script type=\"text/javascript\">".$this->class.".newInstance(1);</script>
 		</div>
 		<!--/Social Monster-->
 ";
