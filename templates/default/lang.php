@@ -22,6 +22,7 @@ final class social_monster_lang {
 		{
 			if(isset(self::$data[$lang]) && isset(self::$data[$lang][$id]))$id=self::$data[$lang][$id];
 		}
+		if(is_int($id))$id="Unknown message";
 		if($render)echo $id;
 		else return $id;
 	}
