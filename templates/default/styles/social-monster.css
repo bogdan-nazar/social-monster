@@ -1,0 +1,130 @@
+.social-monster {}
+.social-monster .share {}
+.social-monster .share.top {
+	padding-top:5px;
+	padding-bottom:10px;
+}
+.social-monster .share.bottom {
+	padding-top:10px;
+	padding-bottom:10px;
+}
+.social-monster .share.left {
+	text-align:left;
+}
+.social-monster .share.right {
+	text-align:right;
+}
+.social-monster .share.center {
+	text-align:center;
+}
+.social-monster .share .sh-title {
+	width:50%;
+	padding:5px 0;
+	margin-bottom:5px;
+	font-weight:bold;
+}
+.social-monster .share.center .sh-title {
+	margin:0 auto 5px auto;
+}
+.social-monster .share.right .sh-title {
+	margin:0 0 5px auto;
+}
+.social-monster .share .btn {
+	display:inline-block;
+	width:32px;
+	height:32px;
+	border:0;
+	margin:0 5px 0 0;
+	padding:0;
+	vertical-align:top;
+	background-image:url('../images/share-icons.png');
+	background-repeat:no-repeat;
+	cursor:pointer;
+}
+.social-monster .share .btn.delicious {
+	background-position:left top;
+}
+.social-monster .share .btn.facebook {
+	background-position:-32px top;
+}
+.social-monster .share .btn.google-plus {
+	background-position:-64px top;
+}
+.social-monster .share .btn.habrahabr {
+	background-position:-96px top;
+}
+.social-monster .share .btn.linked-in {
+	background-position:-128px top;
+}
+.social-monster .share .btn.live-journal {
+	background-position:-160px top;
+}
+.social-monster .share .btn.mail-ru {
+	background-position:-192px top;
+}
+.social-monster .share .btn.moi-krug {
+	background-position:-224px top;
+}
+.social-monster .share .btn.odnoklassniki {
+	background-position:-256px top;
+}
+.social-monster .share .btn.pinterest {
+	background-position:-288px top;
+	overflow:hidden;
+}
+.social-monster .share .btn.tumblr {
+	background-position:-320px top;
+}
+.social-monster .share .btn.twitter {
+	background-position:-352px top;
+}
+.social-monster .share .btn.vkontakte {
+	background-position:-384px top;
+}
+.social-monster .share .btn.ya-ru {
+	background-position:-416px top;
+}
+.social-monster .collapse {
+	display:block;
+	margin-top:16px;
+	background-color:#ecfaff;
+	border:1px solid #c2efff;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	border-radius:5px;
+}
+.social-monster .collapse .logo {
+	display:inline-block;
+	width:70px;
+	height:36px;
+	vertical-align:middle;
+	background-image:url(../images/comments-head.png);
+	background-repeat:no-repeat;
+	background-position:left center;
+}
+.social-monster .collapse.fb .logo {
+	background-position:left top;
+}
+.social-monster .collapse.vk .logo {
+	background-position:left -36px;
+}
+.social-monster .collapse.int .logo {
+	background-position:left -108px;
+}
+.social-monster .collapse .btn {
+	display:inline-block;
+	vertical-align:middle;
+	font-size:22px;
+	color:#527e8d;
+	cursor:pointer;
+	text-decoration:underline;
+}
+.social-monster .collapse .btn:hover {
+	text-decoration:none;
+}
+.social-monster .comments {
+	margin-top:30px;
+}
+.social-monster .comments.colpd {
+	margin-top:15px;
+}

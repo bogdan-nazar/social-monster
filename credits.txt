@@ -1,0 +1,65 @@
+------------------------------------------------------------
+Subject: Javascript Function.prototype.bind implementation
+Artist: Andrea Giammarchi
+License: (?) blog shared.
+Download URL: http://webreflection.blogspot.ru/2010/02/functionprototypebind.html
+Reference URL: http://webreflection.blogspot.ru/
+
+------------------------------------------------------------
+Subject: Social Share Buttons (Front)
+Artist: Incwadra / Iconoskaz (http://habrahabr.ru/hub/iconoskaz/)
+Iconset: HabraPack
+License: CCPL
+Download URL: https://github.com/Incwadra/HabraPack
+Reference URL: http://habrahabr.ru/post/135825/
+
+------------------------------------------------------------
+Subject: Internal Comments head icon
+Artist: Fatcow Web Hosting
+Iconset: Farm Fresh Icons (3000 icons)
+License: CC Attribution 3.0
+Download URL: http://www.iconarchive.com/show/farm-fresh-icons-by-fatcow/user-comment-icon.html
+Reference URL: http://www.fatcow.com/free-icons
+
+------------------------------------------------------------
+Subject: Dashboard icons: "up" and "down" arrows
+Artist: Custom Icon Design (Available for custom work)
+Iconset: Flatastic 1 Icons (30 icons)
+License: Free for non-commercial use.
+Download URL: http://www.iconarchive.com/show/flatastic-1-icons-by-custom-icon-design.html
+Reference URL: http://www.customicondesign.com/free-icons/flatastic-icon-set/flatastic-part-1
+
+------------------------------------------------------------
+Subject: Dashboard Share Tab Icon
+Artist: Snip Master
+Iconset: Snipicons
+License: Creative Commons (Attribution-Noncommercial 3.0 Unported)
+Download URL: https://www.iconfinder.com/icons/173097/alt_share_icon
+Reference URL: http://www.snipicons.com/
+
+------------------------------------------------------------
+Subject: Dashboard share buttons
+Artist: Incwadra / Iconoskaz (http://habrahabr.ru/hub/iconoskaz/)
+Iconset: Habrapack
+License: CCPL
+Download URL: https://github.com/Incwadra/HabraPack
+Reference URL: http://habrahabr.ru/post/135825/
+
+------------------------------------------------------------
+Subject: Dashboard Support Tab Icon
+Artist: Icojam
+Iconset: Blue Bits Icons (124 icons)
+License: Public Domain
+Commercial usage: Allowed
+Download URL: http://www.iconarchive.com/show/blue-bits-icons-by-icojam/question-faq-icon.html
+Reference URL: http://www.icojam.com
+
+------------------------------------------------------------
+Subject: Dashboard Donate Tab Icon
+Artist: Sekkyumu
+Iconset: Developpers Icons (105 icons)
+License: Freeware
+Commercial usage: Allowed
+Download URL: http://www.iconarchive.com/show/developpers-icons-by-sekkyumu/Donate-icon.html
+Reference URL: http://sekkyumu.deviantart.com
+
