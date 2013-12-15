@@ -1,4 +1,4 @@
-social-monster
+Social Monster
 ==============
 
 Social Features for WP
