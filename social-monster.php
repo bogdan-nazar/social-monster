@@ -172,20 +172,12 @@ final class social_monster
 	private $sessionTime		=	0;
 	private $sessionTm			=	360;
 	private $title				=	"Social Monster";
-	private $version			=	array(1,0,0);
+	private $version			=	array(1,0,1);
 
 	private function _($id,$render=false)
 	{
-		if(!$this->langLoaded)
-		{
-			if($render)
-			{
-				echo $id;
-				return;
-			}
-			else return $id;
-		}
-		$msg=social_monster_lang::_($id);
+		if(!$this->langLoaded)$msg=false;
+		else $msg=social_monster_lang::_($id);
 		if($msg===false)
 		{
 			if(is_int($id))
@@ -257,10 +249,11 @@ final class social_monster
 					case SOCIAL_MONSTER_LANG_SLVK_STR9:$msg="Number of posts to show can not be an empty value.";break;
 					case SOCIAL_MONSTER_LANG_SLVK_STR10:$msg="Number of posts to show must be a numeric value.";break;
 					case SOCIAL_MONSTER_LANG_SLVK_STR11:$msg="VK Element ID can not be an empty value.";break;
-					default:$msg="[empty string]";
 				}
 			}
+			else $msg=$id;
 		}
+		if($msg===false)$msg="[unknown msg]";
 		if($render)echo $msg;
 		else return $msg;
 	}
