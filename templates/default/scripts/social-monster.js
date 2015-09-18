@@ -57,6 +57,7 @@ var social_monster = function() {
 };
 social_monster.prototype.newInstance = function(config) {
 
+var __name_plug_dir = "social-features-for-wp";
 var __name_inst_fb = "social-monster-fb";
 var __name_inst_int = "social-monster-int";
 var __name_inst_share = "social-monster-share";
@@ -185,9 +186,9 @@ _social_monster_share.prototype._init = function(last, config) {
    						a.href = "http://www.pinterest.com/pin/create/button/?url=" + this._page.url + "&media=" + "&description=" + this._page.title;
    						a["data-pin-do"] = "buttonBookmark";
 						var f = document.getElementsByTagName('SCRIPT')[0], p = document.createElement('SCRIPT');
-   						p.type = 'text/javascript';
+   						p.type = "text/javascript";
    						p.async = true;
-   						p.src = '//assets.pinterest.com/js/pinit.js';
+   						p.src = "//assets.pinterest.com/js/pinit.js";
    						f.parentNode.insertBefore(p, f)
    						ml = 120;
    						cc = 0;

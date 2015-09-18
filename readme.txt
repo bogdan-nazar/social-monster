@@ -1,10 +1,10 @@
 === Social Monster ===
-Contributors: bogdan_nazar
+Contributors: bogdan_nazar, emostarxd
 Donate link: mailto:me@bogdan-nazar.ru
 Tags: facebook, vkontakte, social, comments, share
-Requires at least: 3.6.1
-Tested up to: 3.8
-Stable tag: 1.0.1
+Requires at least: 3.2.1
+Tested up to: 4.3.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,11 +17,11 @@ The main capabilities of this plugin is listed below:
 
 * Internal share buttons (G+,FB,VK,Twitter,Delicious,Pinterest,LinkedIn and more) with ability to select preffered ones.
 * The tools for ordering internal social buttons.
-* The tools for "ShareThis" buttons embedding. Instructions is present to get customized ShareThis data.
+* The tools for "ShareThis" buttons embedding. Instructions are present to get customized ShareThis data.
 * Facebook and Vkontakte comment widgets.
 * Option to order them.
 * Option to switch on/off each of widgets including WP internal comments.
-* Default language is set to english.
+* Default language is set to English.
 * Already translated for <b>russian users</b>.
 * And more other options to cusomize data and view of comment widgets.
 
@@ -42,6 +42,9 @@ No questions yet.
 2. Dashboard options view.
 
 == Changelog ==
+
+= 1.0.2 =
+Major bug fixed "Plugin directory name is invalid" (https://wordpress.org/support/topic/plugin-directory-name-is-invalid)
 
 = 1.0.1 =
 Minor lang bug fix. Also screenshots and readme.txt were changed.

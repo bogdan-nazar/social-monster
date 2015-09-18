@@ -1,15 +1,15 @@
 <?php
 /*
 Plugin Name: Social Monster
-Version: 1.0.0
+Version: 1.0.2
 Description: Adds various social features - likes, comments, etc.
 Requires at least: 3.2.1
-Tested up to: 3.6.1
+Tested up to: 4.3.1
 Plugin URI: http://www.bogdan-nazar.ru/wordpress/my-plugins/social-monster
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/
-Stable tag: 1.0.0
-License: MIT
+Stable tag: 1.0.2
+License: GPLv2 or later
 */
 define("SOCIAL_MONSTER_ON",1,false);
 //predefined lang constants
@@ -142,6 +142,7 @@ final class social_monster
 	private $configReloaded		=	false;
 	private $dirBase			=	"";
 	private $dirInc				=	"";
+	private $dirPlug			=	"social-features-for-wp";
 	private $dirRoot			=	"/";
 	private $isDashboard		=	false;
 	private $name				=	"social-monster";
@@ -367,7 +368,7 @@ final class social_monster
 			$res.="false,msg:\"Wrong template slug passed.\"}";
 			die($res);
 		}
-		$tdir="../wp-content/plugins/".$this->name."/templates/".$template;
+		$tdir="../wp-content/plugins/".$this->dirPlug."/templates/".$template;
 		if(!@file_exists($tdir))
 		{
 			$res.="false,msg:\"Template directory does not exist.\"}";
@@ -1108,7 +1109,9 @@ final class social_monster
 		$this->dirRoot=str_replace("wp-includes","",$this->dirRoot);
 		$this->dirRoot=str_replace("//","/",$this->dirRoot);
 		$this->dirBase=trim($this->dirBase,"/");
-		$this->dirInc="wp-content/plugins/".$this->name;
+		$ps=explode("/",dirname(__FILE__));
+		$this->dirPlug=$ps[count($ps)-1];
+		$this->dirInc="wp-content/plugins/".$this->dirPlug;
 		if($this->dirBase)
 		{
 			$rc=0;
@@ -1780,10 +1783,10 @@ final class social_monster
 		if($this->isDashboard)
 		{
 ?>
-		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->name."/dashboard/scripts/".$this->name.".js?ver=".implode(".",$this->version))?>"></script>
-		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->name."/dashboard/scripts/popup.js?ver=".implode(".",$this->version))?>"></script>
-		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->name."/dashboard/styles/".$this->name.".css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
-		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->name."/dashboard/styles/popup.css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
+		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/scripts/".$this->name.".js?ver=".implode(".",$this->version))?>"></script>
+		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/scripts/popup.js?ver=".implode(".",$this->version))?>"></script>
+		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/styles/".$this->name.".css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
+		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/styles/popup.css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
 <?php
 		}
 		else
@@ -1795,8 +1798,8 @@ final class social_monster
 					break;
 				default:
 ?>
-		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->name."/templates/".$this->configDef["sections"]["template"]."/scripts/".$this->name.".js?ver=".implode(".",$this->version))?>"></script>
-		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->name."/templates/".$this->configDef["sections"]["template"]."/styles/".$this->name.".css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
+		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/templates/".$this->configDef["sections"]["template"]."/scripts/".$this->name.".js?ver=".implode(".",$this->version))?>"></script>
+		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/templates/".$this->configDef["sections"]["template"]."/styles/".$this->name.".css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
 <?php
 			}
 		}
