@@ -75,7 +75,10 @@ function _social_monster_share(id) {
 	this._buttons			=	null;
 	this._confirms			=	[];
 	this._console			=	((typeof console == "undefined") || (!console)) ? false : true;
-	this._dirRoot			=	"/";
+	this._dirs				=	{
+		plug:					__name_plug_dir,
+		root:					"/"
+	};
 	this._domain			=	"";
 	this._initData			=	{
 		curtry:					0,
@@ -87,10 +90,10 @@ function _social_monster_share(id) {
 	this._name				=	__name_inst_share;
 	this._page				=	null;
 	this._puLinked			=	false;
-	this._puScript			=	"wp-content/plugins/" + __name_this + "/dashboard/scripts/popup.js";
-	this._puStyle			=	"wp-content/plugins/" + __name_this + "/dashboard/styles/popup.css";
+	this._puScript			=	"wp-content/plugins/" + this._dirs.plug + "/dashboard/scripts/popup.js";
+	this._puStyle			=	"wp-content/plugins/" + this._dirs.plug + "/dashboard/styles/popup.css";
 	this._session			=	"unknown";
-	this._shareHelper		=	"wp-content/plugins/" + __name_this + "/sharer.php";
+	this._shareHelper		=	"wp-content/plugins/" + this._dirs.plug + "/sharer.php";
 	this.elMain				=	null;
 	this.fInit				=	this._initTry.bind(this);
 	this.plPu				=	null;
@@ -112,7 +115,8 @@ _social_monster_share.prototype._init = function(last, config) {
 			if (typeof config.domain == "string" && config.domain) this._page.domain = config.domain;
 			if (typeof config.session == "string" && config.session) this._page.session = config.session;
 			if (typeof config.excerpt == "string" && config.excerpt) this._page.excerpt = config.excerpt;
-			if (typeof config.root == "string" && config.root) this._dirRoot = config.root;
+			if (typeof config.plug == "string" && config.plug) this._dirs.plug = config.plug;
+			if (typeof config.root == "string" && config.root) this._dirs.root = config.root;
 			if (typeof config.link == "string") this._page.url = config.link;
 			if (typeof config.title == "string") this._page.title = config.title;
 		} else {
@@ -139,7 +143,7 @@ _social_monster_share.prototype._init = function(last, config) {
 				var head = document.getElementsByTagName("HEAD")[0];
 				for (var c in head.childNodes) {
 					if (typeof head.childNodes[c].tagName != "undefined" && (head.childNodes[c].tagName.toLowerCase() == "script") && (typeof head.childNodes[c].src != "undefined")) {
-						if (head.childNodes[c].src.indexOf(__name_this + "/dashboard/scripts/popup.js") != -1) {
+						if (head.childNodes[c].src.indexOf(this._dirs.plug + "/dashboard/scripts/popup.js") != -1) {
 							this._puLinked = true;
 							break;
 						}
@@ -149,12 +153,12 @@ _social_monster_share.prototype._init = function(last, config) {
 					var s = document.createElement("SCRIPT");
 					s.type = "text/javascript";
 					s.async = true;
-					s.src = this._dirRoot + this._puScript;
+					s.src = this._dirs.root + this._puScript;
 					head.appendChild(s);
 					var l = document.createElement("LINK");
 					l.type = "text/css";
 					l.rel = "stylesheet";
-					l.href = this._dirRoot + this._puStyle;
+					l.href = this._dirs.root + this._puStyle;
 					head.appendChild(l);
 					this._puLinked = true;
 					this._puLinked = true;
@@ -500,7 +504,7 @@ _social_monster_share.prototype.onClickButton = function(t) {
 		case "odnoklassniki":
 		case "twitter":
 		case "vkontakte":
-			var url = this._dirRoot + this._shareHelper + "?title=" + this._page.title + "&url=" + this._page.url + "&excerpt=" + encodeURIComponent(this._page.excerpt) + "&type=" + encodeURIComponent(t) + "&session=" + this._page.session + "&seed=" + this.seed();
+			var url = this._dirs.root + this._shareHelper + "?title=" + this._page.title + "&url=" + this._page.url + "&excerpt=" + encodeURIComponent(this._page.excerpt) + "&type=" + encodeURIComponent(t) + "&session=" + this._page.session + "&seed=" + this.seed();
 			var left = Math.floor((screen.availWidth - 800) / 2);
 			var top = Math.floor((screen.availHeight - 530) / 2);
     		var params = "width=800,height=530,resizable=yes,scrollbars=yes,menubar=no,toolbar=no,location=no,directories=no,status=no,left=" + left + ",top=" + top;

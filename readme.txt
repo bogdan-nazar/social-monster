@@ -4,7 +4,7 @@ Donate link: mailto:me@bogdan-nazar.ru
 Tags: facebook, vkontakte, social, comments, share
 Requires at least: 3.2.1
 Tested up to: 4.3.1
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,9 @@ No questions yet.
 2. Dashboard options view.
 
 == Changelog ==
+
+= 1.0.3 =
+Facebook comments bug fixed
 
 = 1.0.2 =
 Major bug fixed "Plugin directory name is invalid" (https://wordpress.org/support/topic/plugin-directory-name-is-invalid)

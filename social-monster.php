@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Social Monster
-Version: 1.0.2
+Version: 1.0.3
 Description: Adds various social features - likes, comments, etc.
 Requires at least: 3.2.1
 Tested up to: 4.3.1
 Plugin URI: http://www.bogdan-nazar.ru/wordpress/my-plugins/social-monster
 Author: Bogdan Nazar
-Author URI: http://www.bogdan-nazar.ru/
-Stable tag: 1.0.2
+Author URI: http://www.bogdan-nazar.ru/wordpress/
+Stable tag: 1.0.3
 License: GPLv2 or later
 */
 define("SOCIAL_MONSTER_ON",1,false);
@@ -173,7 +173,7 @@ final class social_monster
 	private $sessionTime		=	0;
 	private $sessionTm			=	360;
 	private $title				=	"Social Monster";
-	private $version			=	array(1,0,1);
+	private $version			=	array(1,0,3);
 
 	private function _($id,$render=false)
 	{
@@ -1281,7 +1281,7 @@ final class social_monster
 				if($state==1)
 				{
 ?>
-			<script type="text/javascript"><?php echo ($this->class.".")?>newInstance({type: "share", <?php echo ("inst: ".$this->rendered["share"].", ")?>buttons:["<?php echo implode("\",\"",$this->_cfg("share","buttons"))?>"], session: "<?php echo md5(session_id());?>", domain: "<?php echo $_SERVER["SERVER_NAME"]?>", excerpt: "<?php echo $exrpt?>", root: "<?php echo $this->dirRoot?>"<?php echo $link.$ptitle?>});</script>
+			<script type="text/javascript"><?php echo ($this->class.".")?>newInstance({type: "share", <?php echo ("inst: ".$this->rendered["share"].", ")?>buttons:["<?php echo implode("\",\"",$this->_cfg("share","buttons"))?>"], session: "<?php echo md5(session_id());?>", domain: "<?php echo $_SERVER["SERVER_NAME"]?>", excerpt: "<?php echo $exrpt?>", plug: "<?php echo $this->dirPlug;?>", root: "<?php echo $this->dirRoot?>"<?php echo $link.$ptitle?>});</script>
 <?php
 				}
 				$share=@ob_get_contents();
