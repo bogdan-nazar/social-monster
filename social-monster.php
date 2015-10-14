@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Social Monster
-Version: 1.0.3
+Version: 1.0.4
 Description: Adds various social features - likes, comments, etc.
 Requires at least: 3.2.1
 Tested up to: 4.3.1
 Plugin URI: http://www.bogdan-nazar.ru/wordpress/my-plugins/social-monster
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv2 or later
 */
 define("SOCIAL_MONSTER_ON",1,false);
@@ -173,7 +173,7 @@ final class social_monster
 	private $sessionTime		=	0;
 	private $sessionTm			=	360;
 	private $title				=	"Social Monster";
-	private $version			=	array(1,0,3);
+	private $version			=	array(1,0,4);
 
 	private function _($id,$render=false)
 	{
@@ -989,19 +989,19 @@ final class social_monster
 			if($collapse)
 			{
 				$collapsed=$this->_cfg($sect,"collapsed");
-				if($collapsed)$collapsed=" style=\"display:none;\"";
+				if($collapsed)
+				{
+					if($sect=="fb") {
+						$wd="";
+						$wd=$this->_cfg("fb","width",true);
+						if($wd)$wd="width:".$wd."px;";
+						$collapsed=" style=\"height:0;".$wd."overflow:hidden;\"";
+					}
+					else $collapsed=" style=\"display:none;\"";
+				}
 			}
 			else $collapsed=false;
 			$json="";
-			if($collapse)
-			{
-?>
-		<div id="<?php echo $this->name?>-<?php echo ($sect.$this->rendered["com"])?>-hide" class="collapse <?php echo $sect?>"><div class="logo"></div><div class="btn"><?php if(isset($t[$sect]))echo $this->_($t[$sect]." Comments");?></div></div>
-<?php
-			}
-?>
-		<div id="<?php echo $this->name?>-<?php echo ($sect.$this->rendered["com"])?>" class="comments<?php if($collapse)echo " colpd"?>"<?php if($collapsed)echo $collapsed;?>>
-<?php
 			switch($sect)
 			{
 				case "int":
@@ -1015,6 +1015,15 @@ final class social_monster
 					$json=$this->_configJSON("fb");
 					break;
 			}
+			if($collapse)
+			{
+?>
+		<div id="<?php echo $this->name?>-<?php echo ($sect.$this->rendered["com"])?>-hide" class="collapse <?php echo $sect?>"><div class="logo"></div><div class="btn"><?php if(isset($t[$sect]))echo $this->_($t[$sect]." Comments");?></div></div>
+<?php
+			}
+?>
+		<div id="<?php echo $this->name?>-<?php echo ($sect.$this->rendered["com"])?>" class="comments<?php if($collapse)echo " colpd"?>"<?php if($collapsed)echo $collapsed;?>>
+<?php
 			if($json)
 			{
 ?>

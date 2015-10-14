@@ -599,7 +599,9 @@ _social_monster_share.prototype.waitElement = function(elname, prop, last, store
 * https://developers.facebook.com/docs/plugins/comments/
 */
 function _social_monster_fb(id) {
-	this._config	=	{
+	this._collapsed		=	false;
+	this._collapsedEmu	=	true;
+	this._config		=	{
 		_loaded:		false,
 		appId:			"",
 		collapse:		false,
@@ -612,22 +614,25 @@ function _social_monster_fb(id) {
 		script:			"//connect.facebook.net/en_US/all.js",
 		width:			550
 	},
-	this._initErr	=	false;
-	this._initMax	=	100;
-	this._initTm	=	100;
-	this._initTry	=	0;
-	this._inited	=	false;
-	this._id		=	id;
-	this._name		=	__name_inst_fb;
-	this.elCollapse	=	null;
-	this.elParent	=	null;
-	this.fInit		=	null;
+	this._initErr		=	false;
+	this._initMax		=	100;
+	this._initTm		=	100;
+	this._initTry		=	0;
+	this._inited		=	false;
+	this._id			=	id;
+	this._name			=	__name_inst_fb;
+	this.elCollapse		=	null;
+	this.elParent		=	null;
+	this.fInit			=	null;
 };
 _social_monster_fb.prototype._init = function(config) {
 	if (this._inited) return true;
 	this._initTry++;
 	if (typeof config != "object") config = false;
-	if (!this._config._loaded && config) this._configImport(config);
+	if (!this._config._loaded && config) {
+		this._configImport(config);
+		this._collapsed = this._config.collapsed;
+	}
 	if (!this.elParent) this.elParent = document.getElementById(this._name + this._config.instNum);
 	if (!this._config._loaded || (!this.elParent)) {
 		if (this._initTry >= this._initMax) {
@@ -692,6 +697,15 @@ _social_monster_fb.prototype.eventAdd = function(el, evnt, func) {
 	}
 };
 _social_monster_fb.prototype.onClickHide = function() {
+	if (this._collapsedEmu) {
+		this._collapsedEmu = false;
+		this.elParent.style.display = "none";
+		var a = ["height", "overflow"];
+		for (var c = 0; c < 2; c++) {
+			if (this.elParent.style.removeProperty) this.elParent.style.removeProperty(a[c]);
+			else this.elParent.style.removeAttribute(a[c]);
+		}
+	}
 	if (jQuery) {
 		jQuery(this.elParent).stop(true, true);
 		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
