@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Social Monster
-Version: 1.0.4
+Version: 1.0.5
 Description: Adds various social features - likes, comments, etc.
 Requires at least: 3.2.1
 Tested up to: 4.3.1
 Plugin URI: http://www.bogdan-nazar.ru/wordpress/my-plugins/social-monster
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 */
 define("SOCIAL_MONSTER_ON",1,false);
@@ -134,7 +134,7 @@ final class social_monster
 			"element_id"		=>	"vk_comments",
 			"limit"				=>	10,
 			"norealtime"		=>	0,
-			"script"			=>	"//vk.com/js/api/openapi.js?101",
+			"script"			=>	"//vk.com/js/api/openapi.js?117",
 			"state"				=>	0,
 			"width"				=>	0, //0 - auto
 		)
@@ -173,7 +173,7 @@ final class social_monster
 	private $sessionTime		=	0;
 	private $sessionTm			=	360;
 	private $title				=	"Social Monster";
-	private $version			=	array(1,0,4);
+	private $version			=	array(1,0,5);
 
 	private function _($id,$render=false)
 	{

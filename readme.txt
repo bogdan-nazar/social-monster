@@ -4,7 +4,7 @@ Donate link: mailto:me@bogdan-nazar.ru
 Tags: facebook, vkontakte, social, comments, share
 Requires at least: 3.2.1
 Tested up to: 4.3.1
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,10 @@ No questions yet.
 2. Dashboard options view.
 
 == Changelog ==
+
+= 1.0.5 =
+1) VKontakte comments bug fixed: widget's width always 100%.
+2) VK Api version updated to 117.
 
 = 1.0.4 =
 Facebook comments bug fixed: widget's zero width when it is in initially collapsed state.

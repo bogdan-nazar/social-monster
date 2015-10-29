@@ -674,7 +674,7 @@ _social_monster_fb.prototype._configImport = function(cfg) {
 						if ((c == "num_posts") && !v);
 						else this._config[c] = v;
 					} else {
-						if (typeof cfg[c] == "number") this._config[c] = cfg[c];
+						if ((typeof cfg[c] == "number") && cfg[c]) this._config[c] = cfg[c];
 					}
 					break;
 				default:
@@ -859,7 +859,7 @@ function _social_monster_vk(id) {
 		instNum:		1,
 		limit:			10,
 		norealtime:		0,
-		script:			"//vk.com/js/api/openapi.js?101",
+		script:			"//vk.com/js/api/openapi.js?117",
 		width:			0, //0 - auto
 	},
 	this._initErr	=	false;
@@ -935,10 +935,12 @@ _social_monster_vk.prototype._configImport = function(cfg) {
 						if (isNaN(v)) v = 0;
 						if ((c == "limit") && !v) this._config[c];
 						else this._config[c] = v;
+					} else {
+						if ((typeof cfg[c] == "number") && cfg[c]) this._config[c] = cfg[c];
 					}
 					break;
 				default:
-					if (typeof cfg[c] == "string" && !cfg[c]) break;
+					if ((typeof cfg[c] == "string") && !cfg[c]) break;
 					this._config[c] = cfg[c];
 					break;
 			}
@@ -975,6 +977,7 @@ _social_monster_vk.prototype.start = function() {
 	});
 	VK.Widgets.Comments((this._name + this._config.instNum), {
 		attach:	this._config.attach,
+		autoPublish: 0,
 		height:	this._config.height,
 		limit: this._config.limit,
 		norealtime: this._config.norealtime,
