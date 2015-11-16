@@ -172,8 +172,8 @@ _social_monster_share.prototype._init = function(last, config) {
 		this._page.url = encodeURIComponent(document.location.href);
 		this._page.title = encodeURIComponent(document.title);
 	}
-	var n,c;
-	for (var c in this.elMain.childNodes) {
+	var n, c;
+	for (c in this.elMain.childNodes) {
 		n = this.elMain.childNodes[c];
 		if ((typeof n.className != "undefined") && (n.className.indexOf("btn ") != -1)) {
 			c = n.className.replace("btn ", "");
@@ -194,8 +194,8 @@ _social_monster_share.prototype._init = function(last, config) {
    						p.async = true;
    						p.src = "//assets.pinterest.com/js/pinit.js";
    						f.parentNode.insertBefore(p, f)
-   						ml = 120;
-   						cc = 0;
+   						var ml = 120;
+   						var cc = 0;
    						f = function() {
    							cc++;
    							if (cc > ml) return;
@@ -612,7 +612,8 @@ function _social_monster_fb(id) {
 		num_posts:		5,
 		order_by:		"reverse_time", //time,social
 		script:			"//connect.facebook.net/en_US/all.js",
-		width:			550
+		version:		false,
+		width:			"100%"//native is 550px
 	},
 	this._initErr		=	false;
 	this._initMax		=	100;
@@ -645,38 +646,58 @@ _social_monster_fb.prototype._init = function(config) {
 			return false;
 		}
 	}
-	var root = document.createElement("DIV");
-	root.id = "fb-root";
-	document.body.insertBefore(root, document.body.childNodes[0]);
-	window.fbAsyncInit = this.start.bind(this);
-	var head = document.getElementsByTagName("HEAD")[0];
-	var s = document.createElement("SCRIPT");
-	s.type = "text/javascript";
-	s.async = true;
-	s.src = this._config.script;
-	head.appendChild(s);
+	var loaded = this.checkLoaded();
+	if (loaded) {
+		//using external script
+		if (window.FB) {
+			//FB loaded and inited
+			this.start(true);
+		} else {
+			//trying to intercept fbAsyncInit
+			if (window.fbAsyncInit) {
+				var extInit = window.fbAsyncInit;
+				var self = this;
+				window.fbAsyncInit = function(){
+					try {
+						extInit.call(window, arguments);
+					} catch(e) {
+						self.console("Social Monster: FB init error via thirdparty function extInit.");
+					}
+					self.start(true);
+				};
+			}
+		}
+	} else {
+		//trying to start by own
+		var root = document.createElement("DIV");
+		root.id = "fb-root";
+		document.body.insertBefore(root, document.body.childNodes[0]);
+		window.fbAsyncInit = this.start.bind(this);
+		var head = document.getElementsByTagName("HEAD")[0];
+		var s = document.createElement("SCRIPT");
+		s.type = "text/javascript";
+		s.async = true;
+		s.src = this._config.script;
+		head.appendChild(s);
+	}
 	this._inited = true;
 	return true;
 };
 _social_monster_fb.prototype._configImport = function(cfg) {
 	if (typeof cfg != "object" || !cfg) return false;
-	for (var c in this._config) {
+	var c, v;
+	for (c in this._config) {
 		if (!this._config.hasOwnProperty(c)) continue;
 		if (typeof cfg[c] != "undefined") {
 			switch(c) {
-				case "_loaded":
-					break;
+				case "_loaded": break;
 				case "num_posts":
 				case "width":
-					if (typeof cfg[c] == "string") {
-						var v = parseInt(cfg[c], 10);
-						if (isNaN(v)) v = 0;
-						if ((c == "num_posts") && !v);
-						else this._config[c] = v;
-					} else {
-						if ((typeof cfg[c] == "number") && cfg[c]) this._config[c] = cfg[c];
-					}
-					break;
+					if (typeof cfg[c] == "string") v = parseInt(cfg[c], 10) || 0;
+					else v = cfg[c];
+					//saving cfg[c] cause it may contain string value "100%"
+					if (v) this._config[c] = cfg[c];
+ 					break;
 				default:
 					if (typeof cfg[c] == "string" && !cfg[c]) break;
 					this._config[c] = cfg[c];
@@ -686,6 +707,26 @@ _social_monster_fb.prototype._configImport = function(cfg) {
 	}
 	this._config._loaded = true;
 	return true;
+};
+_social_monster_fb.prototype.checkLoaded = function() {
+	var h = document.getElementsByTagName("HEAD")[0];
+	var c = 0, ch,
+		cn = h.childNodes,
+		l = cn.length, pt;
+	for (; c < l; c++) {
+		ch = h.childNodes[c];
+		if (ch.tagName && (ch.tagName.toUpperCase() == "SCRIPT")) {
+			if (ch.src.indexOf("connect.facebook.net") != -1) {
+				//version is not used now but may be used in future
+				if (ch.src.indexOf("&version=v") != -1) {
+					pt = ch.src.split("&version=v");
+					this._config.version = (pt[1].split("&"))[0];
+				}
+				return ch;
+			};
+		}
+	}
+	return false;
 };
 _social_monster_fb.prototype.eventAdd = function(el, evnt, func) {
 	if (el.addEventListener) {
@@ -715,15 +756,20 @@ _social_monster_fb.prototype.onClickHide = function() {
 		else this.elParent.style.display = "block"
 	}
 };
-_social_monster_fb.prototype.start = function() {
-	FB.init({
-		appId      : this._config["appId"], // App ID
-		//channelURL : '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel File
-		status     : true, // check login status
-		cookie     : true, // enable cookies to allow the server to access the session
-		oauth      : true, // enable OAuth 2.0
-		xfbml      : true  // parse XFBML
-	});
+_social_monster_fb.prototype.start = function(inited) {
+	if (typeof inited != "boolean") inited = false;
+	if (!inited) {
+		var opts = {
+			appId:		this._config["appId"], // App ID
+			//channelURL: '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel File
+			status:		true, // check login status
+			cookie:		true, // enable cookies to allow the server to access the session
+			oauth:		true, // enable OAuth 2.0
+			xfbml:		true  // parse XFBML
+		};
+		if (this._config.version) opts.version = this._config.version,
+		FB.init(opts);
+	}
 	if (!this.elParent) return;
 	var el = document.createElement("DIV");
 	el.className = "fb-comments";
@@ -931,8 +977,7 @@ _social_monster_vk.prototype._configImport = function(cfg) {
 				case "norealtime":
 				case "width":
 					if (typeof cfg[c] == "string") {
-						var v = parseInt(cfg[c], 10);
-						if (isNaN(v)) v = 0;
+						var v = parseInt(cfg[c], 10) || 0;
 						if ((c == "limit") && !v) this._config[c];
 						else this._config[c] = v;
 					} else {
@@ -995,6 +1040,7 @@ _social_monster_vk.prototype.start = function() {
 		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
 	}
 };
+
 if (typeof config != "object" || (!config)) config = {};
 if (typeof config.type != "string" || (!config.type)) config.type = "vk";
 var i = {};
@@ -1016,6 +1062,7 @@ switch(config.type) {
 	default:
 		return;
 }
+i.obj.console = this.console;
 if (typeof i.obj._initTry == "function") i.obj._initTry(config);
 else if (typeof i.obj._init != "undefined") i.obj._init(config);
 return i;

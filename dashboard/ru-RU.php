@@ -93,7 +93,7 @@ final class social_monster_lang_data
 		"Target account"=>"Получатель",
 		"Target wallet"=>"Номер кошелька",
 		"VKontakte"=>"ВКонтакте",
-		"Widget width"=>"Ширины виджета",
+		"Widget width"=>"Ширина виджета",
 		"Widget height"=>"Высота виджета",
 		"Widget container id"=>"Id контейнера виджета",
 		"Will be implemented in further releases"=>"Будет реализовано в следующих версиях",

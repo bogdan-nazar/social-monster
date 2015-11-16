@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Social Monster
-Version: 1.0.5
+Version: 1.0.6
 Description: Adds various social features - likes, comments, etc.
 Requires at least: 3.2.1
 Tested up to: 4.3.1
 Plugin URI: http://www.bogdan-nazar.ru/wordpress/my-plugins/social-monster
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 License: GPLv2 or later
 */
 define("SOCIAL_MONSTER_ON",1,false);
@@ -111,12 +111,12 @@ final class social_monster
 			"order_by"			=>	"reverse_time", //social, time
 			"script"			=>	"//connect.facebook.net/en_US/all.js",
 			"state"				=>	0,
-			"width"				=>	550,
+			"width"				=>	"100%"
 		),
 		"section-int"			=>	array(
 			"collapse"			=>	0,
 			"collapsed"			=>	0,
-			"state"				=>	1,
+			"state"				=>	1
 		),
 		"section-share"			=>	array(
 			"sharethis-items"	=>	"",
@@ -136,7 +136,7 @@ final class social_monster
 			"norealtime"		=>	0,
 			"script"			=>	"//vk.com/js/api/openapi.js?117",
 			"state"				=>	0,
-			"width"				=>	0, //0 - auto
+			"width"				=>	0 //0 - auto
 		)
 	);
 	private $configReloaded		=	false;
@@ -173,7 +173,7 @@ final class social_monster
 	private $sessionTime		=	0;
 	private $sessionTm			=	360;
 	private $title				=	"Social Monster";
-	private $version			=	array(1,0,5);
+	private $version			=	array(1,0,6);
 
 	private function _($id,$render=false)
 	{
@@ -991,9 +991,9 @@ final class social_monster
 				$collapsed=$this->_cfg($sect,"collapsed");
 				if($collapsed)
 				{
-					if($sect=="fb") {
-						$wd="";
-						$wd=$this->_cfg("fb","width",true);
+					if($sect=="fb")
+					{
+						$wd=$this->_cfg("fb","width",true) || "";
 						if($wd)$wd="width:".$wd."px;";
 						$collapsed=" style=\"height:0;".$wd."overflow:hidden;\"";
 					}
