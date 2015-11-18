@@ -1,3 +1,12 @@
+/*
+Social Monster client App
+Version: 1.0.7
+Description: Adds various social features - likes, comments, etc.
+Author: Bogdan Nazar
+Author URI: http://www.bogdan-nazar.ru/wordpress/
+License: GPLv2 or later
+*/
+
 //global objects registry
 if (typeof thirdparty_shared == "undefined") {
 	thirdparty_shared = new (function() {
@@ -653,25 +662,34 @@ _social_monster_fb.prototype._init = function(config) {
 			//FB loaded and inited
 			this.start(true);
 		} else {
-			//trying to intercept fbAsyncInit
 			if (window.fbAsyncInit) {
+				//trying to intercept fbAsyncInit
 				var extInit = window.fbAsyncInit;
 				var self = this;
 				window.fbAsyncInit = function(){
 					try {
-						extInit.call(window, arguments);
+						extInit.apply(window, arguments);
 					} catch(e) {
-						self.console("Social Monster: FB init error via thirdparty function extInit.");
+						self.console("Social Monster: FB init error on a thirdparty function [extInit()].");
+						self.console(extInit);
 					}
 					self.start(true);
 				};
+			} else {
+				//trying to start anyway...
+				//but fbAsyncInit() function may be overwritten by another thirdparty FB installation
+				window.fbAsyncInit = this.start.bind(this, true);
+				this.console("Social Monster: trying to start in the non-secure mode...")
 			}
 		}
 	} else {
 		//trying to start by own
-		var root = document.createElement("DIV");
-		root.id = "fb-root";
-		document.body.insertBefore(root, document.body.childNodes[0]);
+		var root = document.getElementById("fb-root") || false;
+		if (!root) {
+			root = document.createElement("DIV");
+			root.id = "fb-root";
+			document.body.insertBefore(root, document.body.childNodes[0]);
+		}
 		window.fbAsyncInit = this.start.bind(this);
 		var head = document.getElementsByTagName("HEAD")[0];
 		var s = document.createElement("SCRIPT");
@@ -922,6 +940,11 @@ function _social_monster_vk(id) {
 };
 _social_monster_vk.prototype._init = function(config) {
 	if (this._inited) return true;
+	if (typeof config == "string") {
+		this.console("Social Monster: instance init error. Reason: " + config);
+		this._inited = true;
+		return;
+	}
 	this._initTry++;
 	if (typeof config != "object") config = false;
 	if (!this._config._loaded && config) {

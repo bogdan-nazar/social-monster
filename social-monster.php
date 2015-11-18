@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Social Monster
-Version: 1.0.6
+Version: 1.0.7
 Description: Adds various social features - likes, comments, etc.
 Requires at least: 3.2.1
 Tested up to: 4.3.1
 Plugin URI: http://www.bogdan-nazar.ru/wordpress/my-plugins/social-monster
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 */
 define("SOCIAL_MONSTER_ON",1,false);
@@ -111,7 +111,7 @@ final class social_monster
 			"order_by"			=>	"reverse_time", //social, time
 			"script"			=>	"//connect.facebook.net/en_US/all.js",
 			"state"				=>	0,
-			"width"				=>	"100%"
+			"width"				=>	0//0 - auto
 		),
 		"section-int"			=>	array(
 			"collapse"			=>	0,
@@ -134,7 +134,8 @@ final class social_monster
 			"element_id"		=>	"vk_comments",
 			"limit"				=>	10,
 			"norealtime"		=>	0,
-			"script"			=>	"//vk.com/js/api/openapi.js?117",
+			"script"			=>	"//vk.com/js/api/openapi.js",
+			"scriptVer"			=>	121,//added at 1.0.7
 			"state"				=>	0,
 			"width"				=>	0 //0 - auto
 		)
@@ -173,7 +174,7 @@ final class social_monster
 	private $sessionTime		=	0;
 	private $sessionTm			=	360;
 	private $title				=	"Social Monster";
-	private $version			=	array(1,0,6);
+	private $version			=	array(1,0,7);
 
 	private function _($id,$render=false)
 	{
@@ -857,6 +858,7 @@ final class social_monster
 				if($val!==false)$json[]="collapsed:".$val;
 				break;
 			case "vk":
+				//API ID
 				$apiId=$this->_cfg("vk","apiId");
 				if(!$apiId)
 				{
@@ -864,22 +866,42 @@ final class social_monster
 					return false;
 				}
 				$json[]="apiId:\"".$apiId."\"";
+				//attach
 				$val=$this->_cfg("vk","attach",true);
 				if($val!==false)$json[]=("attach:".((!$val)?"false":("\"".$val."\"")));
+				//collapse
 				$val=$this->_cfg("vk","collapse",true);
 				if($val!==false)$json[]="collapse:".$val;
+				//collapsed
 				$val=$this->_cfg("vk","collapsed",true);
 				if($val!==false)$json[]="collapsed:".$val;
+				//height
 				$val=$this->_cfg("vk","height",true);
 				if($val!==false)$json[]="height:".$val;
+				//element_id
 				$val=$this->_cfg("vk","element_id",true);
 				if($val!==false)$json[]="element_id:\"".$val."\"";
+				//limit
 				$val=$this->_cfg("vk","limit",true);
 				if($val!==false)$json[]="limit:".$val;
+				//norealtime
 				$val=$this->_cfg("vk","norealtime",true);
 				if($val!==false)$json[]="norealtime:".$val;
+				//script
 				$val=$this->_cfg("vk","script",true);
+				//update on VK API version (from 1.0.7)
+				$val1=$this->_cfg("vk","scriptVer",true);
+				if($val1!==false)
+				{
+					if(strpos($val,"?")!==false)
+					{
+						$val=explode("?",$val);
+						$val=$val[0]."?".$val1;
+					}
+					else $val.=("?".$val1);
+				}
 				if($val!==false)$json[]="script:\"".$val."\"";
+				//width
 				$val=$this->_cfg("vk","width",true);
 				if($val!==false)$json[]="width:".$val;
 				break;
@@ -956,13 +978,8 @@ final class social_monster
 
 	private function _renderComments($tpl_link)
 	{
-		$this->rendered["com"]++;
-		@ob_start();
-		$tpl=@file_get_contents($tpl_link);
-		if($tpl===false)return"";
-		$tpl=trim($tpl);
-		$tpl=ltrim($tpl,"\xEF\xBB\xBF");
 		$head="<?php defined(\"SOCIAL_MONSTER_ON\") or die(\"Error\");?>";
+		@ob_start();
 ?>
 	<!--Social Monster-->
 	<div class="<?php echo $this->name?>" id="<?php echo $this->name?>-main">
@@ -972,12 +989,13 @@ final class social_monster
 		{
 
 			echo"
-	</div>
+	</div>\n
 	<!--/Social Monster-->\n";
 			$tpl=@ob_get_contents();
 			@ob_end_clean();
 			return $head."\n".$tpl;
 		}
+		$this->rendered["com"]++;
 		$l=count($order);
 		$t=$this->presets["titles"];
 		for($c=0;$c<$l;$c++)
@@ -1002,11 +1020,14 @@ final class social_monster
 			}
 			else $collapsed=false;
 			$json="";
+			$tpl="";
 			switch($sect)
 			{
 				case "int":
+					$tpl="".@file_get_contents($tpl_link);
+					$tpl=trim($tpl);
+					$tpl=ltrim($tpl,"\xEF\xBB\xBF");
 					$json=$this->_configJSON("int");
-					echo $tpl;
 					break;
 				case "vk":
 					$json=$this->_configJSON("vk");
@@ -1024,6 +1045,7 @@ final class social_monster
 ?>
 		<div id="<?php echo $this->name?>-<?php echo ($sect.$this->rendered["com"])?>" class="comments<?php if($collapse)echo " colpd"?>"<?php if($collapsed)echo $collapsed;?>>
 <?php
+			if($tpl)echo $tpl;
 			if($json)
 			{
 ?>
@@ -1118,7 +1140,7 @@ final class social_monster
 		$this->dirRoot=str_replace("wp-includes","",$this->dirRoot);
 		$this->dirRoot=str_replace("//","/",$this->dirRoot);
 		$this->dirBase=trim($this->dirBase,"/");
-		$ps=explode("/",dirname(__FILE__));
+		$ps=explode("/",str_replace("\\","/",dirname(__FILE__)));
 		$this->dirPlug=$ps[count($ps)-1];
 		$this->dirInc="wp-content/plugins/".$this->dirPlug;
 		if($this->dirBase)
@@ -1539,7 +1561,8 @@ final class social_monster
 						<tr>
 						<td><div class="fld-title"><?php $this->_("Widget width",true)?></div></td>
 						<td>
-							<input type="text" id="<?php echo $this->name?>-fb-width" value="<?php echo $this->_cfg("fb","width")?>" />
+							<input type="text" id="<?php echo $this->name?>-fb-width" value="<?php echo $this->_cfg("fb","width")?>" /><br />
+							<i><?php $this->_("use 0 (zero) to set to auto",true)?></i>
 						</td>
 						</tr>
 						<tr>
@@ -1607,7 +1630,16 @@ final class social_monster
 						<tr>
 						<td><div class="fld-title"><?php $this->_("Injected SDK script",true)?></div></td>
 						<td>
-							<input type="text" id="<?php echo $this->name?>-vk-script" value="<?php echo $this->_cfg("vk","script")?>" />
+<?php
+		//update on API version (from 1.0.7)
+		$val=$this->_cfg("vk","script");
+		if(strpos($val,"?")!==false)
+		{
+			$val=explode("?",$val);
+			$val=$val[0];
+		}
+?>
+							<input type="text" id="<?php echo $this->name?>-vk-script" value="<?php echo $val?>" />
 						</td>
 						</tr>
 						<tr>

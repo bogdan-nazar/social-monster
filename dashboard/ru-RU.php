@@ -73,7 +73,7 @@ final class social_monster_lang_data
 		"Color Scheme"=>"Цветовая схема",
 		"Common settings"=>"Общие настройки",
 		"Comments order"=>"Очередность комментариев",
-		"Detailed settings"=>"Подробные настройки",
+		"Detailed settings"=>"Расширенные настройки",
 		"E-mail for answer"=>"E-mail для ответа",
 		"Full description"=>"Полное описание",
 		"Initial posts count"=>"Начальное кол-во комментариев",

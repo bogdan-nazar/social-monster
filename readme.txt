@@ -4,7 +4,7 @@ Donate link: mailto:me@bogdan-nazar.ru
 Tags: facebook, vkontakte, social, comments, share
 Requires at least: 3.2.1
 Tested up to: 4.3.1
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,10 +43,15 @@ No questions yet.
 
 == Changelog ==
 
+= 1.0.7 =
+1) Major bugfix related to the not proper positioning of the internal WP comments block.
+2) Added some minor improvements (labels and etc.).
+3) VK Api version updated to 121.
+
 = 1.0.6 =
 1) Fixed the issue with the multiple FB SDK injection.
 2) Facebook Comments widget default width set to 100%.
-3) Minor bugfix with initial visibility of the hidden widget.
+3) Minor bugfix with the initial visibility of the hidden widget.
 
 = 1.0.5 =
 1) VKontakte comments bug fixed: widget's width always 100%.
