@@ -1,15 +1,24 @@
 /*
 Social Monster client App
-Version: 1.0.7
+Version: 1.0.8
 Description: Adds various social features - likes, comments, etc.
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/
 License: GPLv2 or later
 */
+(function(){
+var __name_plug_dir = "social-features-for-wp";
+var __name_inst_fb = "social-monster-fb";
+var __name_inst_int = "social-monster-int";
+var __name_inst_share = "social-monster-share";
+var __name_inst_vk = "social-monster-vk";
+var __name_popup = "popup";
+var __name_script = "social-monster.js";
+var __name_this = "social-monster";
 
 //global objects registry
-if (typeof thirdparty_shared == "undefined") {
-	thirdparty_shared = new (function() {
+if (typeof window.thirdparty_shared == "undefined") {
+	window.thirdparty_shared = new (function() {
 		this._objects	=	[];
 		this.objGet		=	function(name) {
 			if (typeof this._objects[name] != "undefined") {
@@ -62,38 +71,28 @@ if (Function.prototype.bind == null) {
 * Social Monster Global Object
 */
 var social_monster = function() {
-	this._instances = [];
+	this.$_console			=	(window.console && (typeof window.console.log == "function"));
+	this.$_initTm			=	false;
+	this.$_initSleep		=	50;
+	this.$_instances		=	[];
+	this.$_protos			=	{};
+	this.fInstancesInit		=	this._instancesInit.bind(this);
 };
-social_monster.prototype.newInstance = function(config) {
+social_monster.prototype._init = function() {
 
-var __name_plug_dir = "social-features-for-wp";
-var __name_inst_fb = "social-monster-fb";
-var __name_inst_int = "social-monster-int";
-var __name_inst_share = "social-monster-share";
-var __name_inst_vk = "social-monster-vk";
-var __name_popup = "popup";
-var __name_script = "social-monster.js";
-var __name_this = "social-monster";
-
-/*
+/**
 * Wrapper object for Share Buttons
 */
-function _social_monster_share(id) {
+var _share = function(id) {
 	this._alerts			=	[];
 	this._args				=	false;
 	this._buttons			=	null;
 	this._confirms			=	[];
-	this._console			=	((typeof console == "undefined") || (!console)) ? false : true;
 	this._dirs				=	{
 		plug:					__name_plug_dir,
 		root:					"/"
 	};
 	this._domain			=	"";
-	this._initData			=	{
-		curtry:					0,
-		maxtry:					100,
-		sleep:					50
-	};
 	this._inited			=	false;
 	this._instance			=	0;
 	this._name				=	__name_inst_share;
@@ -104,10 +103,9 @@ function _social_monster_share(id) {
 	this._session			=	"unknown";
 	this._shareHelper		=	"wp-content/plugins/" + this._dirs.plug + "/sharer.php";
 	this.elMain				=	null;
-	this.fInit				=	this._initTry.bind(this);
 	this.plPu				=	null;
 };
-_social_monster_share.prototype._init = function(last, config) {
+_share.prototype._init = function(last, config) {
 	if (typeof last != "boolean") last = false;
 	//saving config
 	if (!this._buttons) {
@@ -132,7 +130,7 @@ _social_monster_share.prototype._init = function(last, config) {
 			if (last) {
 				this._inited = true;
 				this._initErr = true;
-				this.console(__name_script + " > " + this._name + "._init: Init error - config wait timeout.");
+				this.console(__name_script + " > " + this._name + "._init(): Init error - config wait timeout.");
 				return true;
 			}
 			return false;
@@ -140,12 +138,12 @@ _social_monster_share.prototype._init = function(last, config) {
 	}
 	//waiting other objects
 	if (!this.plPu) {
-		this.plPu = thirdparty_shared.objGet(__name_popup);
+		this.plPu = window.thirdparty_shared.objGet(__name_popup);
 		if (!this.plPu) {
 			if (last) {
 				this._inited = true;
 				this._initErr = true;
-				this.console(__name_script + " > " + this._name + "._init: Init error - dependend object [" + __name_popup + "] wait timeout.");
+				this.console(__name_script + " > " + this._name + "._init(): Init error - dependend object [" + __name_popup + "] wait timeout.");
 				return true;
 			}
 			if (!this._puLinked) {
@@ -259,51 +257,654 @@ _social_monster_share.prototype._init = function(last, config) {
 	this._inited = true;
 	return true;
 };
-/*
-* Common initer function
+_share.prototype.onClickButton = function(t) {
+	if (typeof t != "string") return;
+	if (typeof this._buttons[t] == "undefined") return;
+	var bo = this._buttons[t];
+	switch (t) {
+		case "delicious":
+		case "facebook":
+		case "google-plus":
+		case "mail-ru":
+		case "odnoklassniki":
+		case "twitter":
+		case "vkontakte":
+			var url = this._dirs.root + this._shareHelper + "?title=" + this._page.title + "&url=" + this._page.url + "&excerpt=" + encodeURIComponent(this._page.excerpt) + "&type=" + encodeURIComponent(t) + "&session=" + this._page.session + "&seed=" + this.seed();
+			var left = Math.floor((screen.availWidth - 800) / 2);
+			var top = Math.floor((screen.availHeight - 530) / 2);
+    		var params = "width=800,height=530,resizable=yes,scrollbars=yes,menubar=no,toolbar=no,location=no,directories=no,status=no,left=" + left + ",top=" + top;
+			if (bo.pu !== -1 && !bo.pu.closed) {
+				bo.pu.location.href = url;
+				bo.pu.focus();
+			} else {
+				bo.pu = window.open(url, "", params);
+				if (!bo.pu) {
+					alert("Can't open popup window, please turn off the browser popup blocker.");
+					bo.pu = -1;
+				}
+			}
+			break;
+		case "unknown-sn"://possible popup
+			if (bo.pu == -1) {
+				var cont = document.createElement("DIV");
+				bo.pu = this.plPu.add({windowed: true, content: cont, showcloser: true});
+				if (bo.pu > -1) {
+					bo.cont = cont;
+					cont.style.width = "560px";
+					cont.style.backgroundColor = "#fff";
+					var frame = document.createElement("IFRAME");
+					frame.style.border = "none";
+					frame.style.margin = "none";
+					frame.style.outline = "none";
+					frame.style.width = "560px";
+					frame.style.height = "530px";
+					cont.appendChild(frame);
+				}
+			}
+			if (bo.pu == -1) this.console(__name_script + " > " + this._name + ".onClickButton(" + t + "): Popup create error.");
+			else {
+				frame.src = "http://[social_network_host]/share?url=" + this._page.url + "&title=" + this._page.title + "&description=" + encodeURIComponent(this._page.excerpt) + "&imageurl=";
+				this.plPu.show(bo.pu);
+			}
+			break;
+	}
+};
+this.$_protos["share"] = _share;
+
+/**
+* Wrapper object for FB Comments handling
+* Extended documentation on FB Comments API see here:
+* https://developers.facebook.com/docs/plugins/comments/
 */
-_social_monster_share.prototype._initTry = function(config) {
-	if (typeof config != "object") config = false;
-	this._initData.curtry++;
-	if (this._initData.curtry > this._initData.maxtry) {
-		this._inited = true;
+var _fb = function(id) {
+	this._collapsed		=	false;
+	this._collapsedEmu	=	true;
+	this._config		=	{
+		_loaded:		false,
+		appId:			"",
+		collapse:		false,
+		collapsed:		false,
+		colorscheme:	"light",//dark
+		data_href:		"",
+		instNum:		1,
+		num_posts:		5,
+		order_by:		"reverse_time", //time,social
+		script:			"//connect.facebook.net/en_US/all.js",
+		version:		false,
+		width:			"100%"//native is 550px
+	},
+	this._initErr		=	false;
+	this._inited		=	false;
+	this._id			=	id;
+	this._name			=	__name_inst_fb;
+	this._script		=	{
+		checked:			false,
+		elem:				null,
+		inited:				false,
+		isSDK:				false,
+		hasId:				false,
+		root:				false,
+		version:			false
+	};
+	this.elBody			=	null;
+	this.elCollapse		=	null;
+	this.elParent		=	null;
+	this.fFBInit		=	this.FBInit.bind(this);
+	this.fStart			=	this.start.bind(this);
+};
+_fb.prototype._init = function(last, config) {
+	if (this._inited) return true;
+	if (typeof config == "string") {
+		this.console(__name_script + " > [Social Monster FB]._init(): instance init error. Reason: " + config);
 		this._initErr = true;
-		return;
+		this._inited = true;
+		return true;
 	}
-	var res = false;
-	var err = false;
-	if (typeof this._init == "function") {
-		try {
-			if (config) res = this._init((this._initData.curtry == this._initData.maxtry), config);
-			else res = this._init((this._initData.curtry == this._initData.maxtry));
-			if (typeof res !== "boolean") res = true;
-		} catch(e) {
-			res = true;
-			err = true;
-			this.console(__name_script + " > " + this._name + ".initTry(): Plugin init error [" + this._name + "]. Javascript message: [" + e.name + "/" + e.message + "].");
+	if (typeof last != "boolena") last = false;
+	if (typeof config != "object") config = false;
+	if (!this._config._loaded) {
+		if (config) {
+			this._configImport(config);
+			this._collapsed = this._config.collapsed;
 		}
-	} else {
-		res = true;
-		err = true;
-		this.console(__name_script + " > " + this._name + ".initTry(): Warning - init entry [._init()] of [" + this._name + "] instance is not defined or is not a function.");
+		if (!this._config._loaded) {
+			if (last) {
+				this._inited = true;
+				this._initErr = true;
+				this.console(__name_script + " > [Social Monster FB]._init(): Can't start without configuration passed.");
+				return true;
+			}
+			return false;
+		}
 	}
-	if (res) {
-		if (typeof this._inited == "undefined") this._inited = true;
-		if (typeof this._initeErr == "undefined") this._initErr = err;
+	if (!this._script.checked) {
+		var loaded = this.FBInjected();
+		if (loaded) {
+			//using external script
+			if (window.FB) {
+				//FB loaded and inited (will be inited)
+				if ((window.fbAsyncInit && window.fbAsyncInit.hasRun) || this._script.hasId || this._script.isSDK) {
+					this._script.inited = true;
+				} else {
+					this.FBInit();
+				}
+			} else {
+				if (window.fbAsyncInit) {
+					//trying to intercept fbAsyncInit
+					var extInit = window.fbAsyncInit;
+					var self = this;
+					window.fbAsyncInit = function(){
+						try {
+							extInit.apply(window, arguments);
+						} catch(e) {
+							self.console(__name_script + " > [Social Monster FB]._init(): FB init error on a thirdparty function [extInit()].");
+							self.console(extInit);
+						}
+						self._script.inited = true;
+						self.FBRoot();
+					};
+				} else {
+					//trying to start anyway...
+					//but fbAsyncInit() function may be overwritten by another thirdparty FB installation
+					window.fbAsyncInit = this.fFBInit;
+					this.console(__name_script + " > [Social Monster FB].init(): Trying to start in the non-secure mode...")
+				}
+			}
+		} else {
+			window.fbAsyncInit = this.fFBInit;
+			var head = document.getElementsByTagName("HEAD")[0];
+			var s = document.createElement("SCRIPT");
+			s.type = "text/javascript";
+			s.async = true;
+			s.src = this._config.script;
+			head.appendChild(s);
+		}
+	}
+	if (!this.elBody) {
+		this.elBody = document.body;
+		if (!this.elBody) {
+			if (last) {
+				this._inited = true;
+				this._initErr = true;
+				this.console(__name_script + " > [Social Monster FB]._init(): Can't start without page BODY container.");
+				return true;
+			}
+			return false;
+		}
+	}
+	if (!this._script.root) this.FBRoot();
+	if (!this._script.inited) {
+		if (last) {
+			this._inited = true;
+			this._initErr = true;
+			this.console(__name_script + " > [Social Monster FB]._init(): Can't start without FB SDK.");
+			return true;
+		}
+		return false;
+	}
+	if (!this.elParent) {
+		this.elParent = document.getElementById(this._name + this._config.instNum);
+		if (!this.elParent) {
+			if (last) {
+				this._inited = true;
+				this._initErr = true;
+				this.console(__name_script + " > [Social Monster FB]._init(): Can't start without main DIV container (" + this._name + this._config.instNum  + ")");
+				return true;
+			}
+			return false;
+		}
+	}
+	this._inited = true;
+	this.start();
+	return true;
+};
+_fb.prototype._configImport = function(cfg) {
+	if (typeof cfg != "object" || !cfg) return false;
+	var c, v;
+	for (c in this._config) {
+		if (!this._config.hasOwnProperty(c)) continue;
+		if (typeof cfg[c] != "undefined") {
+			switch(c) {
+				case "_loaded": break;
+				case "num_posts":
+				case "width":
+					if (typeof cfg[c] == "string") v = parseInt(cfg[c], 10) || 0;
+					else v = cfg[c];
+					//saving cfg[c] cause it may contain string value "100%"
+					if (v) this._config[c] = cfg[c];
+ 					break;
+				default:
+					if (typeof cfg[c] == "string" && !cfg[c]) break;
+					this._config[c] = cfg[c];
+					break;
+			}
+		}
+	}
+	this._config._loaded = true;
+	return true;
+};
+_fb.prototype.FBInjected = function() {
+	this._script.checked = true;
+	var h = document.getElementsByTagName("HEAD")[0];
+	var c = 0, ch,
+		cn = h.childNodes,
+		l = cn.length, pt;
+	for (; c < l; c++) {
+		ch = h.childNodes[c];
+		if (ch.tagName && (ch.tagName.toUpperCase() == "SCRIPT")) {
+			if (ch.src.indexOf("connect.facebook.net") != -1) {
+				this._script.elem = ch;
+				//version is not used now but may be used in future
+				if (ch.src.indexOf("&version=v") != -1) {
+					pt = ch.src.split("&version=v");
+					this._script.version = (pt[1].split("&"))[0];
+				}
+				this._script.isSDK = (ch.src.indexOf("/sdk.js") != -1)
+				this._script.hasId = (ch.src.indexOf("appId=") != -1)
+				return ch;
+			};
+		}
+	}
+	return false;
+};
+_fb.prototype.FBInit = function() {
+	this._script.inited = true;
+	var opts = {
+		appId:		this._config["appId"], // App ID
+		//channelURL: '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel File
+		status:		true, // check login status
+		cookie:		true, // enable cookies to allow the server to access the session
+		oauth:		true, // enable OAuth 2.0
+		xfbml:		true  // parse XFBML
+	};
+	if (this._script.version) opts.version = this._script.version;
+	FB.init(opts);
+	this.FBRoot();
+};
+_fb.prototype.FBRoot = function() {
+	if (!this.elBody) return;
+	this._script.root = true;
+	//trying to start by own
+	var root = document.getElementById("fb-root") || false;
+	if (!root) {
+		root = document.createElement("DIV");
+		root.id = "fb-root";
+		if (this.elBody.childNodes.length) this.elBody.insertBefore(root, this.elBody.childNodes[0]);
+		else this.elBody.appendChild(root);
+	}
+};
+_fb.prototype.onClickHide = function() {
+	if (this._collapsedEmu) {
+		this._collapsedEmu = false;
+		this.elParent.style.display = "none";
+		var a = ["height", "overflow", "margin-top"];
+		for (var c = 0; c < 2; c++) {
+			if (this.elParent.style.removeProperty) this.elParent.style.removeProperty(a[c]);
+			else this.elParent.style.removeAttribute(a[c]);
+		}
+	}
+	if (jQuery) {
+		jQuery(this.elParent).stop(true, true);
+		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
+		else jQuery(this.elParent).slideDown(500);
 	} else {
-		window.setTimeout(this.fInit, this._initData.sleep);
+		if (this.elParent.style.display == "block") this.elParent.style.display = "none";
+		else this.elParent.style.display = "block"
+	}
+};
+_fb.prototype.start = function() {
+	var el = document.createElement("DIV");
+	el.className = "fb-comments";
+	el.setAttribute("data-href", document.location.href);
+	el.setAttribute("data-numposts", this._config.num_posts);
+	el.setAttribute("data-colorscheme", this._config.colorscheme);
+	el.setAttribute("data-order-by", this._config.order_by);
+	el.setAttribute("data-width", this._config.width);
+	this.elParent.appendChild(el);
+	FB.XFBML.parse(this.elParent);
+	if (this._config.collapse) {
+		this.elCollapse = document.getElementById(this._name + this._config.instNum + "-hide");
+		var ch;
+		for (var c in this.elCollapse.childNodes) {
+			ch = this.elCollapse.childNodes[c];
+			if ((typeof ch.tagName != "undefined") && (ch.tagName.toLowerCase() == "div")) {
+				if (ch.className.indexOf("btn") != -1) break;
+			} else ch = false;
+		}
+		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
+	}
+};
+this.$_protos["fb"] = _fb;
+
+/**
+* Wrapper object for Wordpress Comments handling
+*/
+var _int = function(id) {
+	this._config	=	{
+		_loaded:		false,
+		collapse:		false,
+		collapsed:		false,
+		instNum:		1,
+	},
+	this._initErr	=	false;
+	this._inited	=	false;
+	this._id		=	id;
+	this._name		=	__name_inst_int;
+	this.elCollapse	=	null;
+	this.elParent	=	null;
+};
+_int.prototype._init = function(last, config) {
+	if (this._inited) return true;
+	if (typeof config != "object") config = false;
+	if (!this._config._loaded && config) {
+		this._configImport(config);
+		if (!this._config._loaded) {
+			if (last) {
+				this._inited = true;
+				this._initErr = true;
+				return true;
+			}
+			return false;
+		}
+	}
+	if (!this.elParent) {
+		this.elParent = document.getElementById(this._name + this._config.instNum);
+		if (!this.elParent) {
+			if (last) {
+				this._inited = true;
+				this._initErr = true;
+				return true;
+			}
+			return false;
+		}
+	}
+	this._inited = true;
+	this.start();
+	return true;
+};
+_int.prototype._configImport = function(cfg) {
+	if (typeof cfg != "object" || !cfg) return false;
+	for (var c in this._config) {
+		if (!this._config.hasOwnProperty(c)) continue;
+		if (typeof cfg[c] != "undefined") {
+			switch(c) {
+				case "_loaded":
+					break;
+				default:
+					if (typeof cfg[c] == "string" && !cfg[c]) break;
+					this._config[c] = cfg[c];
+					break;
+			}
+		}
+	}
+	this._config._loaded = true;
+	return true;
+};
+_int.prototype.onClickHide = function() {
+	if (jQuery) {
+		jQuery(this.elParent).stop(true, true);
+		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
+		else jQuery(this.elParent).slideDown(500);
+	} else {
+		if (this.elParent.style.display == "block") this.elParent.style.display = "none";
+		else this.elParent.style.display = "block"
+	}
+};
+_int.prototype.start = function() {
+	this.elParent = document.getElementById(this._name + this._config.instNum);
+	if (!this.elParent) return;
+	if (this._config.collapse) {
+		this.elCollapse = document.getElementById(this._name + this._config.instNum + "-hide");
+		var ch;
+		for (var c in this.elCollapse.childNodes) {
+			ch = this.elCollapse.childNodes[c];
+			if ((typeof ch.tagName != "undefined") && (ch.tagName.toLowerCase() == "div")) {
+				if (ch.className.indexOf("btn") != -1) break;
+			} else ch = false;
+		}
+		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
+	}
+};
+this.$_protos["int"] = _int;
+
+/**
+* Wrapper object for VK Comments handling
+* Extended documentation on VK Comments API see here (Russian):
+* http://vk.com/developers.php?o=-1&p=%C4%EE%EA%F3%EC%E5%ED%F2%E0%F6%E8%FF+%EE+%E2%E8%E4%E6%E5%F2%E5+%EA%EE%EC%EC%E5%ED%F2%E0%F0%E8%E5%E2
+*/
+var _vk = function(id) {
+	this._config	=	{
+		_loaded:		false,
+		apiId:			"",
+		attach:			"*", //graffiti, photo, audio, video, link
+		collapse:		false,
+		collapsed:		false,
+		height:			0,
+		element_id:		"vk_comments",
+		instNum:		1,
+		limit:			10,
+		norealtime:		0,
+		script:			"//vk.com/js/api/openapi.js",
+		width:			0, //0 - auto
+	},
+	this._initErr	=	false;
+	this._inited	=	false;
+	this._id		=	id;
+	this._name		=	__name_inst_vk;
+	this._vkLinked	=	false;
+	this.elCollapse	=	null;
+	this.elParent	=	null;
+};
+_vk.prototype._init = function(last, config) {
+	if (this._inited) return true;
+	if (typeof config == "string") {
+		this.console(__name_script + " > [Social Monster VK]._init(): instance init error. Reason: " + config);
+		this._initErr = true;
+		this._inited = true;
+		return true;
+	}
+	if (typeof config != "object") config = false;
+	if (!this._config._loaded) {
+		if (config) this._configImport(config);
+		if (!this._config._loaded) {
+			if (last) {
+				this._inited = true;
+				this._initErr = true;
+				this.console(__name_script + " > [Social Monster VK]._init(): Can't start without configuration passed.");
+				return true;
+			}
+			return false;
+		}
+	}
+	if (!this._vkLinked) {
+		var segs = this._config.script.split("?");
+		var head = document.getElementsByTagName("HEAD")[0];
+		for (var c in head.childNodes) {
+			if (typeof head.childNodes[c].tagName != "undefined" && (head.childNodes[c].tagName.toLowerCase() == "script") && (typeof head.childNodes[c].src != "undefined")) {
+				if (head.childNodes[c].src.indexOf(segs[0]) != -1) {
+					this._vkLinked = true;
+					break;
+				}
+			}
+		}
+		if (!this._vkLinked) {
+			var s = document.createElement("SCRIPT");
+			s.type = "text/javascript";
+			s.async = true;
+			s.src = this._config.script;
+			head.appendChild(s);
+			this._vkLinked = true;
+		}
+	}
+	if (typeof window.VK == "undefined") {
+		if (last) {
+			this._inited = true;
+			this._initErr = true;
+			this.console(__name_script + " > [Social Monster VK]._init(): Can't start without VK SDK.");
+			return true;
+		}
+		return false;
+	}
+	this._inited = true;
+	this.start();
+	return true;
+};
+_vk.prototype._configImport = function(cfg) {
+	if (typeof cfg != "object" || !cfg) return false;
+	for (var c in this._config) {
+		if (!this._config.hasOwnProperty(c)) continue;
+		if (typeof cfg[c] != "undefined") {
+			switch(c) {
+				case "_loaded":
+					break;
+				case "height":
+				case "limit":
+				case "norealtime":
+				case "width":
+					if (typeof cfg[c] == "string") {
+						var v = parseInt(cfg[c], 10) || 0;
+						if ((c == "limit") && !v) this._config[c];
+						else this._config[c] = v;
+					} else {
+						if ((typeof cfg[c] == "number") && cfg[c]) this._config[c] = cfg[c];
+					}
+					break;
+				default:
+					if ((typeof cfg[c] == "string") && !cfg[c]) break;
+					this._config[c] = cfg[c];
+					break;
+			}
+		}
+	}
+	this._config._loaded = true;
+	return true;
+};
+_vk.prototype.onClickHide = function() {
+	if (jQuery) {
+		jQuery(this.elParent).stop(true, true);
+		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
+		else jQuery(this.elParent).slideDown(500);
+	} else {
+		if (this.elParent.style.display == "block") this.elParent.style.display = "none";
+		else this.elParent.style.display = "block"
+	}
+};
+_vk.prototype.start = function() {
+	this.elParent = document.getElementById(this._name + this._config.instNum);
+	if (!this.elParent) return;
+	VK.init({
+		apiId: this._config.apiId,
+		onlyWidgets: true,
+	});
+	VK.Widgets.Comments((this._name + this._config.instNum), {
+		attach:	this._config.attach,
+		autoPublish: 0,
+		height:	this._config.height,
+		limit: this._config.limit,
+		norealtime: this._config.norealtime,
+		width: this._config.width
+	});
+	if (this._config.collapse) {
+		this.elCollapse = document.getElementById(this._name + this._config.instNum + "-hide");
+		var ch;
+		for (var c in this.elCollapse.childNodes) {
+			ch = this.elCollapse.childNodes[c];
+			if ((typeof ch.tagName != "undefined") && (ch.tagName.toLowerCase() == "div")) {
+				if (ch.className.indexOf("btn") != -1) break;
+			} else ch = false;
+		}
+		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
+	}
+};
+this.$_protos["vk"] = _vk;
+
+};
+social_monster.prototype._instance = function(config) {
+	if (typeof config != "object" || (!config)) config = {};
+	if (typeof config.type != "string" || (!config.type)) config.type = "vk";
+	var i = {
+		config:		config,
+		id:			0,
+		initErr:	false,
+		inited:		false,
+		init:		{
+			last:	false,
+			tryCur:	0,
+			tryMax:	1000,
+		},
+		obj:		null,
+		parent:		this
+	};
+	this.$_instances.push(i);
+	i.id = this.$_instances.length - 1;
+	//creating
+	if (this.$_protos[config.type]) i.obj = new this.$_protos[config.type](i.id);
+	else return false;
+	//extending
+	i.obj.console = this.console;
+	i.obj.eventAdd = this.eventAdd;
+	i.obj.eventFix = this.eventFix;
+	i.obj.eventPreventDefault = this.eventPreventDefault;
+	i.obj.eventRemove = this.eventRemove;
+	i.obj.seed = this.seed;
+	i.obj.waitElement = this.waitElement;
+	this._instancesInit();
+	return i;
+};
+social_monster.prototype._instancesInit = function() {
+	if (this.$_initTm) {
+		window.clearTimeout(this.$_initTm);
+		this.$_initTm = false;
+	}
+	var c = 0, err, i,
+		l = this.$_instances.length,
+		inited = true, res;
+	for (; c < l; c++) {
+		i = this.$_instances[c];
+		if (i.inited) continue;
+		i.init.tryCur++;
+		if (i.init.tryCur > i.init.tryMax) {
+			i.inited = true;
+			i.initErr = true;
+		} else {
+			err = false;
+			i.init.last = (i.init.tryCur == i.init.tryMax);
+			if (typeof i.obj._init == "function") {
+				try {
+					res = i.obj._init(i.init.last, i.config, i);
+					//this.console("[" + i.obj._name + "/" + i.init.tryCur + "]: " + (res?"true":"false"));
+					if (typeof res !== "boolean") res = true;
+				} catch(e) {
+					res = true;
+					err = true;
+					this.console(__name_script + " > " + this._name + "._instancesInit(): Plugin init error [" + i.obj._name + "]. Message: [" + e.name + "/" + e.message + "].");
+				}
+			} else {
+				res = true;
+				err = true;
+				this.console(__name_script + " > " + this._name + "._instancesInit(): Warning - init entry [._init()] of the [" + this._name + "] instance is not defined or is not a function.");
+			}
+			i.inited = res;
+			i.initErr = err;
+			if (err) {
+				if (typeof i.obj._inited == "boolean") this._inited = true;
+				if (typeof i.obj._initeErr == "boolean") this._initErr = true;
+			}
+			inited = inited && res;
+		}
+	}
+	if (!inited) {
+		this.$_initTm = window.setTimeout(this.fInstancesInit, this.$_initSleep);
+		//this.console("Timeout set: " + this.$_initTm);
 	}
 };
 /*
-* Other own functions
+* Shared functions
 */
-_social_monster_share.prototype.console = function(msg) {
-	if (this._console) console.log(msg);
+social_monster.prototype.console = function(msg) {
+	if (this.$_console) window.console.log(msg);
 };
-/*
-* Dialogs
-*/
-_social_monster_share.prototype.dlgAlert = function(msg, type, wd) {
+social_monster.prototype.dlgAlert = function(msg, type, wd) {
 	var el = null;
 	if ((typeof msg != "string") && (typeof msg.nodeType == "undefined")) {
 		var err = false;
@@ -373,7 +974,7 @@ _social_monster_share.prototype.dlgAlert = function(msg, type, wd) {
 	else this.console(__name_script + " > " + this._name + ".dlgAlert(): Can't create modal window: popup plugin [" + __name_popup + "] call returned with an error.");
 	return (this._alerts.length - 1);
 };
-_social_monster_share.prototype.dlgConfirm = function(msg, cb, title, wd) {
+social_monster.prototype.dlgConfirm = function(msg, cb, title, wd) {
 	var el = null;
 	if ((typeof msg != "string") && (typeof msg.nodeType == "undefined")) {
 		var err = false;
@@ -448,10 +1049,7 @@ _social_monster_share.prototype.dlgConfirm = function(msg, cb, title, wd) {
 	else this.console(__name_script + " > " + this._name + ".dlgConfirm(): Can't create modal window: popup plugin [" + __name_popup + "] call returned with an error.");
 	return (this._confirms.length - 1);
 };
-/*
-* Event helper functions
-*/
-_social_monster_share.prototype.eventAdd = function(el, evnt, func) {
+social_monster.prototype.eventAdd = function(el, evnt, func) {
 	if (el.addEventListener) {
 		el.addEventListener(evnt, func, false);
 	} else if (el.attachEvent) {
@@ -460,7 +1058,7 @@ _social_monster_share.prototype.eventAdd = function(el, evnt, func) {
 		el[evnt] = func;
 	}
 };
-_social_monster_share.prototype.eventFix = function(e) {
+social_monster.prototype.eventFix = function(e) {
 	// получить объект событие для IE
 	e = e || window.event
 	// добавить pageX/pageY для IE
@@ -479,7 +1077,7 @@ _social_monster_share.prototype.eventFix = function(e) {
 	}
 	return e;
 };
-_social_monster_share.prototype.eventPreventDefault = function(e) {
+social_monster.prototype.eventPreventDefault = function(e) {
 	if (typeof e == "undefined") return;
 	if (e.preventDefault) {
 		e.preventDefault();
@@ -489,7 +1087,7 @@ _social_monster_share.prototype.eventPreventDefault = function(e) {
 		e.cancelBubble = true;
 	}
 };
-_social_monster_share.prototype.eventRemove = function(el, evnt, func) {
+social_monster.prototype.eventRemove = function(el, evnt, func) {
 	if (el.removeEventListener) {
 		el.removeEventListener(evnt, func, false);
 	} else if (el.attachEvent) {
@@ -498,71 +1096,13 @@ _social_monster_share.prototype.eventRemove = function(el, evnt, func) {
 		el[evnt] = null;
 	}
 };
-/*
-* Events proccessing
-*/
-_social_monster_share.prototype.onClickButton = function(t) {
-	if (typeof t != "string") return;
-	if (typeof this._buttons[t] == "undefined") return;
-	var bo = this._buttons[t];
-	switch (t) {
-		case "delicious":
-		case "facebook":
-		case "google-plus":
-		case "mail-ru":
-		case "odnoklassniki":
-		case "twitter":
-		case "vkontakte":
-			var url = this._dirs.root + this._shareHelper + "?title=" + this._page.title + "&url=" + this._page.url + "&excerpt=" + encodeURIComponent(this._page.excerpt) + "&type=" + encodeURIComponent(t) + "&session=" + this._page.session + "&seed=" + this.seed();
-			var left = Math.floor((screen.availWidth - 800) / 2);
-			var top = Math.floor((screen.availHeight - 530) / 2);
-    		var params = "width=800,height=530,resizable=yes,scrollbars=yes,menubar=no,toolbar=no,location=no,directories=no,status=no,left=" + left + ",top=" + top;
-			if (bo.pu !== -1 && !bo.pu.closed) {
-				bo.pu.location.href = url;
-				bo.pu.focus();
-			} else {
-				bo.pu = window.open(url, "", params);
-				if (!bo.pu) {
-					alert("Can't open popup window, please turn off the browser popup blocker.");
-					bo.pu = -1;
-				}
-			}
-			break;
-		case "unknown-sn"://possible popup
-			if (bo.pu == -1) {
-				var cont = document.createElement("DIV");
-				bo.pu = this.plPu.add({windowed: true, content: cont, showcloser: true});
-				if (bo.pu > -1) {
-					bo.cont = cont;
-					cont.style.width = "560px";
-					cont.style.backgroundColor = "#fff";
-					var frame = document.createElement("IFRAME");
-					frame.style.border = "none";
-					frame.style.margin = "none";
-					frame.style.outline = "none";
-					frame.style.width = "560px";
-					frame.style.height = "530px";
-					cont.appendChild(frame);
-				}
-			}
-			if (bo.pu == -1) this.console(__name_script + " > " + this._name + ".onClickButton(" + t + "): Popup create error.");
-			else {
-				frame.src = "http://[social_network_host]/share?url=" + this._page.url + "&title=" + this._page.title + "&description=" + encodeURIComponent(this._page.excerpt) + "&imageurl=";
-				this.plPu.show(bo.pu);
-			}
-			break;
-	}
-};
-_social_monster_share.prototype.seed = function() {
+social_monster.prototype.seed = function() {
 	if (typeof Math != "undefined")
 		return "" + (Math.floor((Math.random()*1000000000) + 1));
 	else
 		return (new Date()).getTime();
 };
-/*
-* Init helper function
-*/
-_social_monster_share.prototype.waitElement = function(elname, prop, last, store_as_object) {
+social_monster.prototype.waitElement = function(elname, prop, last, store_as_object) {
 	var name = "";
 	if (typeof store_as_object != "string") {
 		if ((typeof store_as_object == "boolean") && store_as_object) {
@@ -601,493 +1141,7 @@ _social_monster_share.prototype.waitElement = function(elname, prop, last, store
 	return false;
 };
 
-
-/**
-* Wrapper object for FB Comments handling
-* Extended documentation on FB Comments API see here:
-* https://developers.facebook.com/docs/plugins/comments/
-*/
-function _social_monster_fb(id) {
-	this._collapsed		=	false;
-	this._collapsedEmu	=	true;
-	this._config		=	{
-		_loaded:		false,
-		appId:			"",
-		collapse:		false,
-		collapsed:		false,
-		colorscheme:	"light",//dark
-		data_href:		"",
-		instNum:		1,
-		num_posts:		5,
-		order_by:		"reverse_time", //time,social
-		script:			"//connect.facebook.net/en_US/all.js",
-		version:		false,
-		width:			"100%"//native is 550px
-	},
-	this._initErr		=	false;
-	this._initMax		=	100;
-	this._initTm		=	100;
-	this._initTry		=	0;
-	this._inited		=	false;
-	this._id			=	id;
-	this._name			=	__name_inst_fb;
-	this.elCollapse		=	null;
-	this.elParent		=	null;
-	this.fInit			=	null;
-};
-_social_monster_fb.prototype._init = function(config) {
-	if (this._inited) return true;
-	this._initTry++;
-	if (typeof config != "object") config = false;
-	if (!this._config._loaded && config) {
-		this._configImport(config);
-		this._collapsed = this._config.collapsed;
-	}
-	if (!this.elParent) this.elParent = document.getElementById(this._name + this._config.instNum);
-	if (!this._config._loaded || (!this.elParent)) {
-		if (this._initTry >= this._initMax) {
-			this._inited = true;
-			this._initErr = true;
-			return true;
-		} else {
-			if (!this.fInit) this.fInit = this._init.bind(this);
-			window.setTimeout(this.fInit, this._initTm);
-			return false;
-		}
-	}
-	var loaded = this.checkLoaded();
-	if (loaded) {
-		//using external script
-		if (window.FB) {
-			//FB loaded and inited
-			this.start(true);
-		} else {
-			if (window.fbAsyncInit) {
-				//trying to intercept fbAsyncInit
-				var extInit = window.fbAsyncInit;
-				var self = this;
-				window.fbAsyncInit = function(){
-					try {
-						extInit.apply(window, arguments);
-					} catch(e) {
-						self.console("Social Monster: FB init error on a thirdparty function [extInit()].");
-						self.console(extInit);
-					}
-					self.start(true);
-				};
-			} else {
-				//trying to start anyway...
-				//but fbAsyncInit() function may be overwritten by another thirdparty FB installation
-				window.fbAsyncInit = this.start.bind(this, true);
-				this.console("Social Monster: trying to start in the non-secure mode...")
-			}
-		}
-	} else {
-		//trying to start by own
-		var root = document.getElementById("fb-root") || false;
-		if (!root) {
-			root = document.createElement("DIV");
-			root.id = "fb-root";
-			document.body.insertBefore(root, document.body.childNodes[0]);
-		}
-		window.fbAsyncInit = this.start.bind(this);
-		var head = document.getElementsByTagName("HEAD")[0];
-		var s = document.createElement("SCRIPT");
-		s.type = "text/javascript";
-		s.async = true;
-		s.src = this._config.script;
-		head.appendChild(s);
-	}
-	this._inited = true;
-	return true;
-};
-_social_monster_fb.prototype._configImport = function(cfg) {
-	if (typeof cfg != "object" || !cfg) return false;
-	var c, v;
-	for (c in this._config) {
-		if (!this._config.hasOwnProperty(c)) continue;
-		if (typeof cfg[c] != "undefined") {
-			switch(c) {
-				case "_loaded": break;
-				case "num_posts":
-				case "width":
-					if (typeof cfg[c] == "string") v = parseInt(cfg[c], 10) || 0;
-					else v = cfg[c];
-					//saving cfg[c] cause it may contain string value "100%"
-					if (v) this._config[c] = cfg[c];
- 					break;
-				default:
-					if (typeof cfg[c] == "string" && !cfg[c]) break;
-					this._config[c] = cfg[c];
-					break;
-			}
-		}
-	}
-	this._config._loaded = true;
-	return true;
-};
-_social_monster_fb.prototype.checkLoaded = function() {
-	var h = document.getElementsByTagName("HEAD")[0];
-	var c = 0, ch,
-		cn = h.childNodes,
-		l = cn.length, pt;
-	for (; c < l; c++) {
-		ch = h.childNodes[c];
-		if (ch.tagName && (ch.tagName.toUpperCase() == "SCRIPT")) {
-			if (ch.src.indexOf("connect.facebook.net") != -1) {
-				//version is not used now but may be used in future
-				if (ch.src.indexOf("&version=v") != -1) {
-					pt = ch.src.split("&version=v");
-					this._config.version = (pt[1].split("&"))[0];
-				}
-				return ch;
-			};
-		}
-	}
-	return false;
-};
-_social_monster_fb.prototype.eventAdd = function(el, evnt, func) {
-	if (el.addEventListener) {
-		el.addEventListener(evnt, func, false);
-	} else if (el.attachEvent) {
-		el.attachEvent("on" + evnt, func);
-	} else {
-		el[evnt] = func;
-	}
-};
-_social_monster_fb.prototype.onClickHide = function() {
-	if (this._collapsedEmu) {
-		this._collapsedEmu = false;
-		this.elParent.style.display = "none";
-		var a = ["height", "overflow"];
-		for (var c = 0; c < 2; c++) {
-			if (this.elParent.style.removeProperty) this.elParent.style.removeProperty(a[c]);
-			else this.elParent.style.removeAttribute(a[c]);
-		}
-	}
-	if (jQuery) {
-		jQuery(this.elParent).stop(true, true);
-		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
-		else jQuery(this.elParent).slideDown(500);
-	} else {
-		if (this.elParent.style.display == "block") this.elParent.style.display = "none";
-		else this.elParent.style.display = "block"
-	}
-};
-_social_monster_fb.prototype.start = function(inited) {
-	if (typeof inited != "boolean") inited = false;
-	if (!inited) {
-		var opts = {
-			appId:		this._config["appId"], // App ID
-			//channelURL: '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel File
-			status:		true, // check login status
-			cookie:		true, // enable cookies to allow the server to access the session
-			oauth:		true, // enable OAuth 2.0
-			xfbml:		true  // parse XFBML
-		};
-		if (this._config.version) opts.version = this._config.version,
-		FB.init(opts);
-	}
-	if (!this.elParent) return;
-	var el = document.createElement("DIV");
-	el.className = "fb-comments";
-	el.setAttribute("data-href", document.location.href);
-	el.setAttribute("data-numposts", this._config.num_posts);
-	el.setAttribute("data-colorscheme", this._config.colorscheme);
-	el.setAttribute("data-order-by", this._config.order_by);
-	el.setAttribute("data-width", this._config.width);
-	this.elParent.appendChild(el);
-	FB.XFBML.parse(this.elParent);
-	if (this._config.collapse) {
-		this.elCollapse = document.getElementById(this._name + this._config.instNum + "-hide");
-		var ch;
-		for (var c in this.elCollapse.childNodes) {
-			ch = this.elCollapse.childNodes[c];
-			if ((typeof ch.tagName != "undefined") && (ch.tagName.toLowerCase() == "div")) {
-				if (ch.className.indexOf("btn") != -1) break;
-			} else ch = false;
-		}
-		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
-	}
-};
-/**
-* Wrapper object for Wordpress Comments handling
-*/
-function _social_monster_int(id) {
-	this._config	=	{
-		_loaded:		false,
-		collapse:		false,
-		collapsed:		false,
-		instNum:		1,
-	},
-	this._initErr	=	false;
-	this._initMax	=	100;
-	this._initTm	=	100;
-	this._initTry	=	0;
-	this._inited	=	false;
-	this._id		=	id;
-	this._name		=	__name_inst_int;
-	this.elCollapse	=	null;
-	this.elParent	=	null;
-	this.fInit		=	null;
-};
-_social_monster_int.prototype._init = function(config) {
-	if (this._inited) return true;
-	this._initTry++;
-	if (typeof config != "object") config = false;
-	if (!this._config._loaded && config) {
-		this._configImport(config);
-	}
-	if (!this.elParent) this.elParent = document.getElementById(this._name + this._config.instNum);
-	if (!this._config._loaded || (!this.elParent)) {
-		if (this._initTry >= this._initMax) {
-			this._inited = true;
-			this._initErr = true;
-			return true;
-		} else {
-			if (!this.fInit) this.fInit = this._init.bind(this);
-			window.setTimeout(this.fInit, this._initTm);
-			return false;
-		}
-	}
-	this._inited = true;
-	this.start();
-	return true;
-};
-_social_monster_int.prototype._configImport = function(cfg) {
-	if (typeof cfg != "object" || !cfg) return false;
-	for (var c in this._config) {
-		if (!this._config.hasOwnProperty(c)) continue;
-		if (typeof cfg[c] != "undefined") {
-			switch(c) {
-				case "_loaded":
-					break;
-				default:
-					if (typeof cfg[c] == "string" && !cfg[c]) break;
-					this._config[c] = cfg[c];
-					break;
-			}
-		}
-	}
-	this._config._loaded = true;
-	return true;
-};
-_social_monster_int.prototype.eventAdd = function(el, evnt, func) {
-	if (el.addEventListener) {
-		el.addEventListener(evnt, func, false);
-	} else if (el.attachEvent) {
-		el.attachEvent("on" + evnt, func);
-	} else {
-		el[evnt] = func;
-	}
-};
-_social_monster_int.prototype.onClickHide = function() {
-	if (jQuery) {
-		jQuery(this.elParent).stop(true, true);
-		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
-		else jQuery(this.elParent).slideDown(500);
-	} else {
-		if (this.elParent.style.display == "block") this.elParent.style.display = "none";
-		else this.elParent.style.display = "block"
-	}
-};
-_social_monster_int.prototype.start = function() {
-	this.elParent = document.getElementById(this._name + this._config.instNum);
-	if (!this.elParent) return;
-	if (this._config.collapse) {
-		this.elCollapse = document.getElementById(this._name + this._config.instNum + "-hide");
-		var ch;
-		for (var c in this.elCollapse.childNodes) {
-			ch = this.elCollapse.childNodes[c];
-			if ((typeof ch.tagName != "undefined") && (ch.tagName.toLowerCase() == "div")) {
-				if (ch.className.indexOf("btn") != -1) break;
-			} else ch = false;
-		}
-		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
-	}
-};
-/**
-* Wrapper object for VK Comments handling
-* Extended documentation on VK Comments API see here (Russian):
-* http://vk.com/developers.php?o=-1&p=%C4%EE%EA%F3%EC%E5%ED%F2%E0%F6%E8%FF+%EE+%E2%E8%E4%E6%E5%F2%E5+%EA%EE%EC%EC%E5%ED%F2%E0%F0%E8%E5%E2
-*/
-function _social_monster_vk(id) {
-	this._config	=	{
-		_loaded:		false,
-		apiId:			"",
-		attach:			"*", //graffiti, photo, audio, video, link
-		collapse:		false,
-		collapsed:		false,
-		height:			0,
-		element_id:		"vk_comments",
-		instNum:		1,
-		limit:			10,
-		norealtime:		0,
-		script:			"//vk.com/js/api/openapi.js?117",
-		width:			0, //0 - auto
-	},
-	this._initErr	=	false;
-	this._initMax	=	100;
-	this._initTm	=	100;
-	this._initTry	=	0;
-	this._inited	=	false;
-	this._id		=	id;
-	this._name		=	__name_inst_vk;
-	this._vkLinked	=	false;
-	this.elCollapse	=	null;
-	this.elParent	=	null;
-	this.fInit		=	null;
-};
-_social_monster_vk.prototype._init = function(config) {
-	if (this._inited) return true;
-	if (typeof config == "string") {
-		this.console("Social Monster: instance init error. Reason: " + config);
-		this._inited = true;
-		return;
-	}
-	this._initTry++;
-	if (typeof config != "object") config = false;
-	if (!this._config._loaded && config) {
-		this._configImport(config);
-	}
-	if (this._config._loaded) {
-		if (!this._vkLinked) {
-			var segs = this._config.script.split("?");
-			var head = document.getElementsByTagName("HEAD")[0];
-			for (var c in head.childNodes) {
-				if (typeof head.childNodes[c].tagName != "undefined" && (head.childNodes[c].tagName.toLowerCase() == "script") && (typeof head.childNodes[c].src != "undefined")) {
-					if (head.childNodes[c].src.indexOf(segs[0]) != -1) {
-						this._vkLinked = true;
-						break;
-					}
-				}
-			}
-			if (!this._vkLinked) {
-				var s = document.createElement("SCRIPT");
-				s.type = "text/javascript";
-				s.async = true;
-				s.src = this._config.script;
-				head.appendChild(s);
-				this._vkLinked = true;
-			}
-		}
-	}
-	if (!this._config._loaded || (typeof VK == "undefined")) {
-		if (this._initTry >= this._initMax) {
-			this._inited = true;
-			this._initErr = true;
-			return true;
-		} else {
-			if (!this.fInit) this.fInit = this._init.bind(this);
-			window.setTimeout(this.fInit, this._initTm);
-			return false;
-		}
-	}
-	this._inited = true;
-	this.start();
-	return true;
-};
-_social_monster_vk.prototype._configImport = function(cfg) {
-	if (typeof cfg != "object" || !cfg) return false;
-	for (var c in this._config) {
-		if (!this._config.hasOwnProperty(c)) continue;
-		if (typeof cfg[c] != "undefined") {
-			switch(c) {
-				case "_loaded":
-					break;
-				case "height":
-				case "limit":
-				case "norealtime":
-				case "width":
-					if (typeof cfg[c] == "string") {
-						var v = parseInt(cfg[c], 10) || 0;
-						if ((c == "limit") && !v) this._config[c];
-						else this._config[c] = v;
-					} else {
-						if ((typeof cfg[c] == "number") && cfg[c]) this._config[c] = cfg[c];
-					}
-					break;
-				default:
-					if ((typeof cfg[c] == "string") && !cfg[c]) break;
-					this._config[c] = cfg[c];
-					break;
-			}
-		}
-	}
-	this._config._loaded = true;
-	return true;
-};
-_social_monster_vk.prototype.eventAdd = function(el, evnt, func) {
-	if (el.addEventListener) {
-		el.addEventListener(evnt, func, false);
-	} else if (el.attachEvent) {
-		el.attachEvent("on" + evnt, func);
-	} else {
-		el[evnt] = func;
-	}
-};
-_social_monster_vk.prototype.onClickHide = function() {
-	if (jQuery) {
-		jQuery(this.elParent).stop(true, true);
-		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
-		else jQuery(this.elParent).slideDown(500);
-	} else {
-		if (this.elParent.style.display == "block") this.elParent.style.display = "none";
-		else this.elParent.style.display = "block"
-	}
-};
-_social_monster_vk.prototype.start = function() {
-	this.elParent = document.getElementById(this._name + this._config.instNum);
-	if (!this.elParent) return;
-	VK.init({
-		apiId: this._config.apiId,
-		onlyWidgets: true,
-	});
-	VK.Widgets.Comments((this._name + this._config.instNum), {
-		attach:	this._config.attach,
-		autoPublish: 0,
-		height:	this._config.height,
-		limit: this._config.limit,
-		norealtime: this._config.norealtime,
-		width: this._config.width
-	});
-	if (this._config.collapse) {
-		this.elCollapse = document.getElementById(this._name + this._config.instNum + "-hide");
-		var ch;
-		for (var c in this.elCollapse.childNodes) {
-			ch = this.elCollapse.childNodes[c];
-			if ((typeof ch.tagName != "undefined") && (ch.tagName.toLowerCase() == "div")) {
-				if (ch.className.indexOf("btn") != -1) break;
-			} else ch = false;
-		}
-		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
-	}
-};
-
-if (typeof config != "object" || (!config)) config = {};
-if (typeof config.type != "string" || (!config.type)) config.type = "vk";
-var i = {};
-this._instances.push(i);
-i.id = this._instances.length - 1;
-switch(config.type) {
-	case "fb":
-		i.obj = new _social_monster_fb(i.id);
-		break;
-	case "int":
-		i.obj = new _social_monster_int(i.id);
-		break;
-	case "share":
-		i.obj = new _social_monster_share(i.id);
-		break;
-	case "vk":
-		i.obj = new _social_monster_vk(i.id);
-		break;
-	default:
-		return;
-}
-i.obj.console = this.console;
-if (typeof i.obj._initTry == "function") i.obj._initTry(config);
-else if (typeof i.obj._init != "undefined") i.obj._init(config);
-return i;
-};
-social_monster = new social_monster();
+//starting Social Monster
+window.social_monster = new social_monster();
+window.social_monster._init();
+})();

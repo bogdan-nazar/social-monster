@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Social Monster
-Version: 1.0.7
+Version: 1.0.8
 Description: Adds various social features - likes, comments, etc.
 Requires at least: 3.2.1
 Tested up to: 4.3.1
 Plugin URI: http://www.bogdan-nazar.ru/wordpress/my-plugins/social-monster
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/
-Stable tag: 1.0.7
+Stable tag: 1.0.8
 License: GPLv2 or later
 */
 define("SOCIAL_MONSTER_ON",1,false);
@@ -92,6 +92,9 @@ final class social_monster
 	private $clScripts			=	array();
 	private $clStyles			=	array();
 	private $class				=	__CLASS__;
+	private $client				=	array(
+		"initJS"				=>	""
+	);
 	private $config				=	array();
 	private $configDef			=	array(//don't use boolean vars in the config, use 0 or 1 instead
 		"_version"				=>	"",
@@ -100,7 +103,7 @@ final class social_monster
 			"silent-debug"		=>	true,
 			"template"			=>	"default",
 			"update"			=>	0,
-			"wp-template-tm"	=>	300
+			"wp-template-tm"	=>	30
 		),
 		"section-fb"			=>	array(
 			"appId"				=>	"",
@@ -141,6 +144,9 @@ final class social_monster
 		)
 	);
 	private $configReloaded		=	false;
+	private $contents			=	array(
+		"share"					=>	""
+	);
 	private $dirBase			=	"";
 	private $dirInc				=	"";
 	private $dirPlug			=	"social-features-for-wp";
@@ -169,12 +175,12 @@ final class social_monster
 		"titles"			=>	array("int"=>"Wordpress","vk"=>"VKontakte","fb"=>"Facebook"),
 		"vk-attach"			=>	array("graffiti","photo","audio","video","link","none")
 	);
-	private $rendered			=	array("com"=>0,"share"=>0);
+	private $rendered			=	array("com"=>1,"share"=>1);
 	private $session			=	array();
 	private $sessionTime		=	0;
 	private $sessionTm			=	360;
 	private $title				=	"Social Monster";
-	private $version			=	array(1,0,7);
+	private $version			=	array(1,0,8);
 
 	private function _($id,$render=false)
 	{
@@ -822,6 +828,92 @@ final class social_monster
 		}
 	}
 
+	private function _commentsClient()
+	{
+		$order=$this->_cfg("sections","order");
+		if(!is_array($order))return;
+		$l=count($order);
+		for($c=0;$c<$l;$c++)
+		{
+			$sect=$order[$c];
+			$state=$this->_cfg($sect,"state");
+			if(!$state)continue;
+			//config jsonp-data
+			$json=$this->_configJSON($sect);
+			if($json)$this->client["initJS"].=($this->class."._instance(".$json.");\n");
+		}
+	}
+
+	private function _commentsRender($tpl_link)
+	{
+		$head="<?php defined(\"SOCIAL_MONSTER_ON\") or die(\"Error\");?>";
+		@ob_start();
+?>
+	<!--Social Monster-->
+	<div class="<?php echo $this->name?>" id="<?php echo $this->name?>-main">
+<?php
+		$order=$this->_cfg("sections","order");
+		if(!is_array($order))
+		{
+
+			echo"
+	</div>\n
+	<!--/Social Monster-->\n";
+			$tpl=@ob_get_contents();
+			@ob_end_clean();
+			return $head."\n".$tpl;
+		}
+		$l=count($order);
+		$t=$this->presets["titles"];
+		for($c=0;$c<$l;$c++)
+		{
+			$sect=$order[$c];
+			$state=$this->_cfg($sect,"state");
+			if(!$state)continue;
+			$collapse=$this->_cfg($sect,"collapse");
+			if($collapse)
+			{
+				$collapsed=$this->_cfg($sect,"collapsed");
+				if($collapsed)
+				{
+					if($sect=="fb")
+					{
+						$wd=$this->_cfg("fb","width",true) || "";
+						if($wd)$wd="width:".$wd."px;";
+						$collapsed=" style=\"height:0;".$wd."overflow:hidden;margin-top:0;\"";
+					}
+					else $collapsed=" style=\"display:none;\"";
+				}
+			}
+			else $collapsed=false;
+			//html output
+			$tpl="";
+			if($sect=="int")
+			{
+				$tpl="".@file_get_contents($tpl_link);
+				$tpl=trim($tpl);
+				$tpl=ltrim($tpl,"\xEF\xBB\xBF");
+			}
+			if($collapse)
+			{
+?>
+		<div id="<?php echo $this->name?>-<?php echo ($sect.$this->rendered["com"])?>-hide" class="collapse <?php echo $sect?>"><div class="logo"></div><div class="btn"><?php if(isset($t[$sect]))echo $this->_($t[$sect]." Comments");?></div></div>
+<?php
+			}
+?>
+		<div id="<?php echo $this->name?>-<?php echo ($sect.$this->rendered["com"])?>" class="comments<?php if($collapse)echo " colpd"?>"<?php if($collapsed)echo $collapsed;?>><?php if($tpl)echo $tpl;?></div>
+<?php
+		}
+?>
+	</div>
+	<!--/Social Monster-->
+<?php
+		$tpl=@ob_get_contents();
+		@ob_end_clean();
+		$this->rendered["com"]++;
+		return $head."\n".$tpl;
+	}
+
 	private function _configJSON($sn)
 	{
 		$json=array();
@@ -889,18 +981,21 @@ final class social_monster
 				if($val!==false)$json[]="norealtime:".$val;
 				//script
 				$val=$this->_cfg("vk","script",true);
-				//update on VK API version (from 1.0.7)
-				$val1=$this->_cfg("vk","scriptVer",true);
-				if($val1!==false)
+				if($val!==false)
 				{
-					if(strpos($val,"?")!==false)
+					//update on VK API version (from 1.0.7)
+					$val1=$this->_cfg("vk","scriptVer",true);
+					if($val1!==false)
 					{
-						$val=explode("?",$val);
-						$val=$val[0]."?".$val1;
+						if(strpos($val,"?")!==false)
+						{
+							$val=explode("?",$val);
+							$val=$val[0]."?".$val1;
+						}
+						else $val.=("?".$val1);
 					}
-					else $val.=("?".$val1);
+					$json[]="script:\"".$val."\"";
 				}
-				if($val!==false)$json[]="script:\"".$val."\"";
 				//width
 				$val=$this->_cfg("vk","width",true);
 				if($val!==false)$json[]="width:".$val;
@@ -940,14 +1035,9 @@ final class social_monster
 	{
 		$this->configDef["_version"]=implode(".",$this->version);
 		$this->_sessionRead();
-		add_action("wp_head",array($this,"resourcesLink"));
+		add_action("wp_head",array($this,"htmlHead"));
 		$share=$this->_cfg("share","state");
-		if($share)
-		{
-			add_filter("the_content",array($this,"_render"));
-			if($share==2)add_action("wp_head",array($this,"resourcesLinkShareThis"));
-		}
-		if($this->_cfg("vk","state"))add_action("wp_head",array($this,"resourcesLinkVK"));
+		if($share)add_filter("the_content",array($this,"_render"));
 		add_filter("comments_template",array($this,"_render"));
 		add_action("shutdown",array($this,"_sleep"));
 		$lf=$this->dirInc."/lang.php";
@@ -957,13 +1047,14 @@ final class social_monster
 			if(@class_exists("social_monster_lang"))
 				$this->langLoaded=social_monster_lang::getLang($this->blogInfo["language"],$this->dirInc."/templates/".$this->_cfg("sections","template"));
 		}
+		$this->_commentsClient();
 	}
 
 	private function _initAdmin()
 	{
 		$this->configDef["_version"]=implode(".",$this->version);
 		$this->_sessionRead(true);
-		add_action("admin_head",array($this,"resourcesLink"));
+		add_action("admin_head",array($this,"htmlHeadAdmin"));
 		add_action("admin_menu",array($this,"_renderAdmin"));
 		add_action("wp_ajax_".$this->class."_action", array($this,"_action_ajax"));
 		add_action("shutdown",array($this,"_sleepAdmin"));
@@ -976,93 +1067,46 @@ final class social_monster
 		}
 	}
 
-	private function _renderComments($tpl_link)
+	private function _resourcesLink()
 	{
-		$head="<?php defined(\"SOCIAL_MONSTER_ON\") or die(\"Error\");?>";
-		@ob_start();
+		if($this->isDashboard)
+		{
 ?>
-	<!--Social Monster-->
-	<div class="<?php echo $this->name?>" id="<?php echo $this->name?>-main">
+		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/styles/".$this->name.".css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
+		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/styles/popup.css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
+		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/scripts/".$this->name.".js?ver=".implode(".",$this->version))?>"></script>
+		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/scripts/popup.js?ver=".implode(".",$this->version))?>"></script>
 <?php
-		$order=$this->_cfg("sections","order");
-		if(!is_array($order))
-		{
-
-			echo"
-	</div>\n
-	<!--/Social Monster-->\n";
-			$tpl=@ob_get_contents();
-			@ob_end_clean();
-			return $head."\n".$tpl;
 		}
-		$this->rendered["com"]++;
-		$l=count($order);
-		$t=$this->presets["titles"];
-		for($c=0;$c<$l;$c++)
+		else
 		{
-			$sect=$order[$c];
-			$state=$this->_cfg($sect,"state");
-			if(!$state)continue;
-			$collapse=$this->_cfg($sect,"collapse");
-			if($collapse)
+			$ca=current_filter();
+			switch($ca)
 			{
-				$collapsed=$this->_cfg($sect,"collapsed");
-				if($collapsed)
-				{
-					if($sect=="fb")
+				case "admin_head":
+					break;
+				default:
+?>
+		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/templates/".$this->configDef["sections"]["template"]."/styles/".$this->name.".css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
+		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/templates/".$this->configDef["sections"]["template"]."/scripts/".$this->name.".js?ver=".implode(".",$this->version))?>"></script>
+<?php
+					if($this->client["initJS"])
 					{
-						$wd=$this->_cfg("fb","width",true) || "";
-						if($wd)$wd="width:".$wd."px;";
-						$collapsed=" style=\"height:0;".$wd."overflow:hidden;\"";
+?>
+		<script type="text/javascript"><?php echo $this->client["initJS"];?></script>
+<?
 					}
-					else $collapsed=" style=\"display:none;\"";
-				}
 			}
-			else $collapsed=false;
-			$json="";
-			$tpl="";
-			switch($sect)
-			{
-				case "int":
-					$tpl="".@file_get_contents($tpl_link);
-					$tpl=trim($tpl);
-					$tpl=ltrim($tpl,"\xEF\xBB\xBF");
-					$json=$this->_configJSON("int");
-					break;
-				case "vk":
-					$json=$this->_configJSON("vk");
-					break;
-				case "fb":
-					$json=$this->_configJSON("fb");
-					break;
-			}
-			if($collapse)
-			{
-?>
-		<div id="<?php echo $this->name?>-<?php echo ($sect.$this->rendered["com"])?>-hide" class="collapse <?php echo $sect?>"><div class="logo"></div><div class="btn"><?php if(isset($t[$sect]))echo $this->_($t[$sect]." Comments");?></div></div>
-<?php
-			}
-?>
-		<div id="<?php echo $this->name?>-<?php echo ($sect.$this->rendered["com"])?>" class="comments<?php if($collapse)echo " colpd"?>"<?php if($collapsed)echo $collapsed;?>>
-<?php
-			if($tpl)echo $tpl;
-			if($json)
-			{
-?>
-			<script type="text/javascript"><?php echo ($this->class.".")?>newInstance(<?php echo $json?>);</script>
-<?php
-			}
-?>
-		</div>
-<?php
 		}
+	}
+
+	private function _resourcesLinkShareThis()
+	{
 ?>
-	</div>
-	<!--/Social Monster-->
+		<script type="text/javascript">var switchTo5x=true;</script>
+		<script type="text/javascript" src="http://w.sharethis.com/button/buttons.js"></script>
+		<script type="text/javascript">stLight.options({publisher: "<?php echo $this->_cfg("share","sharethis-publisher")?>", doNotHash: true, doNotCopy: true, hashAddressBar: false});</script>
 <?php
-		$tpl=@ob_get_contents();
-		@ob_end_clean();
-		return $head."\n".$tpl;
 	}
 
 	private function _sessionRead($admin=false)
@@ -1129,6 +1173,95 @@ final class social_monster
 			$_SESSION[$this->name."-stored-time"]=time();
 			$_SESSION[$this->name."-stored-data"]=serialize($this->session);
 		}
+	}
+
+	private function _shares($data)
+	{
+		$share=$this->_cfg("share","state");
+		if(!$share)return;
+		if(!is_singular())
+		{
+			global $post;
+			$link=", link: \"".urlencode(get_permalink($post->ID))."\", ";
+			$ptitle="title: \"".urlencode($post->post_title)."\"";
+		}
+		else
+		{
+			$link="";
+			$ptitle="";
+		}
+		$exrpt=preg_replace ("!\[/?.*\]!U","",$data);
+		$exrpt=strip_tags($exrpt);
+		if(strpos($exrpt,"<!--more-->")!==false)
+		{
+			preg_match("/(.*)<!--more-->/s",$exrpt,$m);
+			$exrpt=$m[1];
+		}
+		$exrpt=str_replace( "\r\n"," ",$exrpt);
+		$exrpt=str_replace( "\n"," ",$exrpt);
+		$exrpt=str_replace( "\r"," ",$exrpt);
+		$exrpt=preg_replace("/s+/"," ",$exrpt);
+		$exrpt=trim($exrpt);
+		$exrpt=mb_substr($exrpt,0,130,"utf-8");
+		$exrpt=preg_replace("/(.*)\s[^\s]*$/s","\\1 ...",$exrpt);
+		$state=$this->_cfg("share","state");
+		$class=$this->_cfg("share","position");
+		$top=(strpos($class,"top ")===0);
+		@ob_start();
+?>
+			<div class="<?php echo $this->name?>"><!--
+				--><div id="<?php echo $this->name?>-share<?php echo $this->rendered["share"]?>" class="share <?php echo $class?>"><!--
+					--><div class="sh-title"><?php echo $this->_("Share with Your friends");?>:</div><!--
+<?
+		if($state==1)
+		{
+			$all=$this->_cfg("share","buttons");
+			$titles=$this->presets["buttons-titles"];
+			foreach($all as $btn)
+			{
+				$title=(isset($titles[$btn])?$titles[$btn]:"Button");
+				switch($btn)
+				{
+					case "linked-in":
+					case "live-journal":
+					case "moi-krug":
+					case "tumblr":
+					case "ya-ru":
+						$tag="a";
+						break;
+					default:
+						$tag="div";
+				}
+?>
+				--><<?php echo $tag?> class="btn <?php echo $btn?>" title="<?php echo $title?>"></<?php echo $tag?>><!--
+<?php
+			}
+			$data=array();
+			$data["type"]="type:\"share\"";
+			$data["inst"]="inst:".$this->rendered["share"];
+			$data["buttons"]="buttons:[\"".implode("\",\"",$this->_cfg("share","buttons"))."\"]";
+			$data["session"]="session:\"".md5(session_id())."\"";
+			$data["domain"]="domain:\"".$_SERVER["SERVER_NAME"]."\"";
+			$data["excerpt"]="excerpt:\"".$exrpt."\"";
+			$data["plug"]="plug:\"".$this->dirPlug."\"";
+			$data["root"]="root:\"".$this->dirRoot."\"";
+		}
+		if($state==1)
+		{
+			echo"--><script type=\"text/javascript\">".$this->class."._instance({".implode(",",$data).$link.$ptitle."});</script><!--";
+		}
+		if($state==2)
+		{
+			echo"-->".$this->_cfg("share","sharethis-items")."<!--";
+		}
+?>
+			--></div><!--
+		--></div>
+<?php
+		$share=@ob_get_contents();
+		@ob_end_clean();
+		$this->contents["share"]=$share;
+		$this->rendered["share"]++;
 	}
 
 	public function __construct()
@@ -1201,7 +1334,7 @@ final class social_monster
 					if(!@file_exists($dir))return $data;
 				}
 				$fcom="";
-				$templateCheck=0;
+				$templateCheck=true;
 				$tm=time();
 				foreach(glob($dir."/comments-*.php") as $file)
 				{
@@ -1211,18 +1344,18 @@ final class social_monster
 					{
 						$templateCheck=0+$fcom[1];
 						$fcom="comments-".$templateCheck.".php";
-						if(!$this->configReloaded || (($tm-$templateCheck)>$this->configDef["section-int"]["wp-template-tm"]))$templateCheck=0;
+						if(!$this->configReloaded && !(($tm-$templateCheck)>$this->configDef["section-int"]["wp-template-tm"]))$templateCheck=0;
 						break;
 					}
 				}
-				if((!$fcom || ($fcom && !$templateCheck)) && !file_exists($dir."/comments-tmp.php"))
+				if((!$fcom || $templateCheck) && !file_exists($dir."/comments-tmp.php"))
 				{
 					if($fcom)
 					{
 						if(@copy($dir."/".$fcom,$dir."/comments-tmp.php")===false)return $data;
-						@chmod($dir."/".$fcom, 0755);
+						@chmod($dir."/".$fcom,0755);
 					}
-					$comments=$this->_renderComments($data);
+					$comments=$this->_commentsRender($data);
 					$fcomn="comments-".$tm.".php";
 					if(@file_put_contents($dir."/".$fcomn,$comments)===false)
 					{
@@ -1245,79 +1378,10 @@ final class social_monster
 				}
 				break;
 			case "the_content":
-				$this->rendered["share"]++;
-				if(!is_singular())
-				{
-					global $post;
-					$link=", link: \"".urlencode(get_permalink($post->ID))."\", ";
-					$ptitle="title: \"".urlencode($post->post_title)."\"";
-				}
-				else
-				{
-					$link="";
-					$ptitle="";
-				}
-				$exrpt=preg_replace ("!\[/?.*\]!U","",$data);
-				$exrpt=strip_tags($exrpt);
-				if(strpos($exrpt,"<!--more-->")!==false)
-				{
-					preg_match("/(.*)<!--more-->/s",$exrpt,$m);
-					$exrpt=$m[1];
-				}
-				$exrpt=str_replace( "\r\n"," ",$exrpt);
-				$exrpt=str_replace( "\n"," ",$exrpt);
-				$exrpt=str_replace( "\r"," ",$exrpt);
-				$exrpt=preg_replace("/s+/"," ",$exrpt);
-				$exrpt=trim($exrpt);
-				$exrpt=mb_substr($exrpt,0,130,"utf-8");
-				$exrpt=preg_replace("/(.*)\s[^\s]*$/s","\\1 ...",$exrpt);
-				$state=$this->_cfg("share","state");
+				$this->_shares($data);
 				$class=$this->_cfg("share","position");
 				$top=(strpos($class,"top ")===0);
-				@ob_start();
-?>
-				<div class="<?php echo $this->name?>"><div id="<?php echo $this->name?>-share<?php echo $this->rendered["share"]?>" class="share <?php echo $class?>"><div class="sh-title"><?php echo $this->_("Share with Your friends");?>:</div><!--
-<?
-				if($state==1)
-				{
-					$all=$this->_cfg("share","buttons");
-					$titles=$this->presets["buttons-titles"];
-					foreach($all as $btn)
-					{
-						$title=(isset($titles[$btn])?$titles[$btn]:"Button");
-						switch($btn)
-						{
-							case "linked-in":
-							case "live-journal":
-							case "moi-krug":
-							case "tumblr":
-							case "ya-ru":
-								$tag="a";
-								break;
-							default:
-								$tag="div";
-						}
-?>
-				--><<?php echo $tag?> class="btn <?php echo $btn?>" title="<?php echo $title?>"></<?php echo $tag?>><!--
-<?php
-					}
-				}
-				if($state==2)
-				{
-					echo "-->".$this->_cfg("share","sharethis-items")."<!--";
-				}
-?>
-				--></div></div>
-<?php
-				if($state==1)
-				{
-?>
-			<script type="text/javascript"><?php echo ($this->class.".")?>newInstance({type: "share", <?php echo ("inst: ".$this->rendered["share"].", ")?>buttons:["<?php echo implode("\",\"",$this->_cfg("share","buttons"))?>"], session: "<?php echo md5(session_id());?>", domain: "<?php echo $_SERVER["SERVER_NAME"]?>", excerpt: "<?php echo $exrpt?>", plug: "<?php echo $this->dirPlug;?>", root: "<?php echo $this->dirRoot?>"<?php echo $link.$ptitle?>});</script>
-<?php
-				}
-				$share=@ob_get_contents();
-				@ob_end_clean();
-				return ($top?($share.$data):($data.$share));
+				return ($top?($this->contents["share"].$data):($data.$this->contents["share"]));
 		}
 	}
 
@@ -1334,7 +1398,7 @@ final class social_monster
 			<?php echo ($this->class.".")?>setRoot("<?php echo $this->dirRoot?>");
 			<?php echo ($this->class.".")?>setDebug(<?php if($this->_cfg("sections","silent-debug"))echo"true";else echo"false";?>);
 		</script>
-		<div class="<?=$this->name?>">
+		<div class="<?php echo $this->name;?>">
 			<div class="dash">
 			<form method="post" action="options.php" id="<?php echo $this->name?>-form" name="<?php echo $this->name?>-form" enctype="multipart/form-data">
 				<input type="hidden" id="<?php echo $this->name?>-action" name="<?php echo $this->name?>-action" value="" />
@@ -1814,52 +1878,21 @@ final class social_monster
 		return"";
 	}
 
+	public function htmlHead()
+	{
+		$this->_resourcesLink();
+		$share=$this->_cfg("share","state");
+		if($share==2)$this->_resourcesLinkShareThis();
+	}
+
+	public function htmlHeadAdmin()
+	{
+		$this->_resourcesLink();
+	}
+
 	public function mailCT()
 	{
 		return"text/html";
-	}
-
-	public function resourcesLink()
-	{
-		if($this->isDashboard)
-		{
-?>
-		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/scripts/".$this->name.".js?ver=".implode(".",$this->version))?>"></script>
-		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/scripts/popup.js?ver=".implode(".",$this->version))?>"></script>
-		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/styles/".$this->name.".css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
-		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/dashboard/styles/popup.css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
-<?php
-		}
-		else
-		{
-			$ca=current_filter();
-			switch($ca)
-			{
-				case "admin_head":
-					break;
-				default:
-?>
-		<script type="text/javascript" src="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/templates/".$this->configDef["sections"]["template"]."/scripts/".$this->name.".js?ver=".implode(".",$this->version))?>"></script>
-		<link type="text/css" href="<?php echo($this->dirRoot."wp-content/plugins/".$this->dirPlug."/templates/".$this->configDef["sections"]["template"]."/styles/".$this->name.".css?ver=".implode(".",$this->version))?>" media="all" rel="stylesheet" />
-<?php
-			}
-		}
-	}
-
-	public function resourcesLinkShareThis()
-	{
-?>
-		<script type="text/javascript">var switchTo5x=true;</script>
-		<script type="text/javascript" src="http://w.sharethis.com/button/buttons.js"></script>
-		<script type="text/javascript">stLight.options({publisher: "<?php echo $this->_cfg("share","sharethis-publisher")?>", doNotHash: true, doNotCopy: true, hashAddressBar: false});</script>
-<?php
-	}
-
-	public function resourcesLinkVK()
-	{
-?>
-		<script type="text/javascript" src="<?php echo $this->_cfg("vk","script")?>"></script>
-<?php
 	}
 }
 new social_monster();
