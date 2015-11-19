@@ -4,7 +4,7 @@ Donate link: mailto:me@bogdan-nazar.ru
 Tags: facebook, vkontakte, social, comments, share
 Requires at least: 3.2.1
 Tested up to: 4.3.1
-Stable tag: 1.0.7
+Stable tag: 1.0.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,10 @@ No questions yet.
 2. Dashboard options view.
 
 == Changelog ==
+
+= 1.0.8 =
+1) Bugfix related to Facebook comments widget not showing on mobile devices.
+2) Improved inject architecture.
 
 = 1.0.7 =
 1) Major bugfix related to the not proper positioning of the internal WP comments block.
