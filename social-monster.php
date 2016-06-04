@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Social Monster
-Version: 1.0.8
+Version: 1.0.9
 Description: Adds various social features - likes, comments, etc.
 Requires at least: 3.2.1
-Tested up to: 4.3.1
+Tested up to: 4.5.2
 Plugin URI: http://www.bogdan-nazar.ru/wordpress/my-plugins/social-monster
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 License: GPLv2 or later
 */
 define("SOCIAL_MONSTER_ON",1,false);
@@ -180,7 +180,7 @@ final class social_monster
 	private $sessionTime		=	0;
 	private $sessionTm			=	360;
 	private $title				=	"Social Monster";
-	private $version			=	array(1,0,8);
+	private $version			=	array(1,0,9);
 
 	private function _($id,$render=false)
 	{
@@ -1232,9 +1232,8 @@ final class social_monster
 					default:
 						$tag="div";
 				}
-?>
-				--><<?php echo $tag?> class="btn <?php echo $btn?>" title="<?php echo $title?>"></<?php echo $tag?>><!--
-<?php
+				echo"
+				--><{$tag}> class=\"btn {$btn}>\" title=\"{$title}>\"></{$tag}>><!--";
 			}
 			$data=array();
 			$data["type"]="type:\"share\"";
@@ -1248,11 +1247,13 @@ final class social_monster
 		}
 		if($state==1)
 		{
-			echo"--><script type=\"text/javascript\">".$this->class."._instance({".implode(",",$data).$link.$ptitle."});</script><!--";
+			echo"
+			--><script type=\"text/javascript\">".$this->class."._instance({".implode(",",$data).$link.$ptitle."});</script><!--";
 		}
 		if($state==2)
 		{
-			echo"-->".$this->_cfg("share","sharethis-items")."<!--";
+			echo
+			"-->".$this->_cfg("share","sharethis-items")."<!--";
 		}
 ?>
 			--></div><!--
@@ -1448,6 +1449,8 @@ final class social_monster
 					<div id="<?php echo $this->name?>-order-data" style="display:none;">[<?php echo ("\"".implode("\",\"",$tp=$this->config["sections"]["order"])."\"");?>]</div>
 				</td>
 				</tr>
+<?php
+				/*
 				<tr>
 				<td><div class="fld-title"><?php echo $this->_("Plugin update")?></div></td>
 				<td>
@@ -1456,6 +1459,8 @@ final class social_monster
 					</select>
 				</td>
 				</tr>
+				*/
+?>
 				<tr>
 				<td colspan="2">
 					<input type="button" class="btn-action" id="<?php echo $this->name?>-btn-save-general" value="<?php $this->_(SOCIAL_MONSTER_LANG_BSV,true)?>" /><!--

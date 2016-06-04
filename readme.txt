@@ -3,8 +3,8 @@ Contributors: bogdan_nazar, emostarxd
 Donate link: mailto:me@bogdan-nazar.ru
 Tags: facebook, vkontakte, social, comments, share
 Requires at least: 3.2.1
-Tested up to: 4.3.1
-Stable tag: 1.0.8
+Tested up to: 4.5.2
+Stable tag: 1.0.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,8 +43,12 @@ No questions yet.
 
 == Changelog ==
 
+= 1.0.9 =
+1) Bugfix related to VK comments widget periodically does not display on the page.
+2) Fixed "jQuery is not defined" error.
+
 = 1.0.8 =
-1) Bugfix related to Facebook comments widget not showing on mobile devices.
+1) Bugfix related to Facebook comments widget does not display on mobile devices.
 2) Improved inject architecture.
 
 = 1.0.7 =

@@ -1,33 +1,55 @@
 /*
 Social Monster client App
-Version: 1.0.8
+Version: 1.0.9
 Description: Adds various social features - likes, comments, etc.
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/
 License: GPLv2 or later
 */
 (function(){
-var __name_plug_dir = "social-features-for-wp";
-var __name_inst_fb = "social-monster-fb";
-var __name_inst_int = "social-monster-int";
-var __name_inst_share = "social-monster-share";
-var __name_inst_vk = "social-monster-vk";
-var __name_popup = "popup";
-var __name_script = "social-monster.js";
+var $ = {
+	b: null,
+	d: document,
+	h: document.getElementsByTagName("HEAD")[0],
+	j: null,
+	w: window
+};
+//checking for jQuery 200 times every 300 ms
+(function(){
+	var c = 0,
+		n = 300,
+		t = 200,
+	w = function() {
+		if ($.w.jQuery) {
+			$.j = $.w.jQuery;
+			return;
+		}
+		if (++c > t) return;
+		$.w.setTimeout(w, n);
+	};
+	w();
+})();
 var __name_this = "social-monster";
+var __name_plug_dir = "social-features-for-wp",
+	__name_inst_fb = __name_this + "-fb",
+	__name_inst_int = __name_this + "-int",
+	__name_inst_share = __name_this + "-share",
+	__name_inst_vk = __name_this + "-vk",
+	__name_popup = "popup",
+	__name_script = __name_this + ".js";
 
 //global objects registry
-if (typeof window.thirdparty_shared == "undefined") {
-	window.thirdparty_shared = new (function() {
-		this._objects	=	[];
-		this.objGet		=	function(name) {
+if (typeof $.w.thirdparty_shared == "undefined") {
+	$.w.thirdparty_shared = new (function() {
+		this._objects = [];
+		this.objGet = function(name) {
 			if (typeof this._objects[name] != "undefined") {
 				if (typeof this._objects[name] == "Function") return new (this._objects[name]);
 				else return this._objects[name];
 			}
 			else return null;
 		};
-		this.objReg		=	function(name, obj) {
+		this.objReg = function(name, obj) {
 			if ((typeof this._objects[name] != "undefined") && obj) return false;
 			return this._objects[name] = obj;
 		};
@@ -71,11 +93,12 @@ if (Function.prototype.bind == null) {
 * Social Monster Global Object
 */
 var social_monster = function() {
-	this.$_console			=	(window.console && (typeof window.console.log == "function"));
-	this.$_initTm			=	false;
-	this.$_initSleep		=	50;
-	this.$_instances		=	[];
-	this.$_protos			=	{};
+	this._console			=	($.w.console && (typeof $.w.console.log == "function"));
+	this._initTm			=	false;
+	this._initSleep		=	50;
+	this._instances		=	[];
+	this._name				=	__name_this;
+	this._protos			=	{};
 	this.fInstancesInit		=	this._instancesInit.bind(this);
 };
 social_monster.prototype._init = function() {
@@ -138,7 +161,7 @@ _share.prototype._init = function(last, config) {
 	}
 	//waiting other objects
 	if (!this.plPu) {
-		this.plPu = window.thirdparty_shared.objGet(__name_popup);
+		this.plPu = $.w.thirdparty_shared.objGet(__name_popup);
 		if (!this.plPu) {
 			if (last) {
 				this._inited = true;
@@ -147,27 +170,27 @@ _share.prototype._init = function(last, config) {
 				return true;
 			}
 			if (!this._puLinked) {
-				var head = document.getElementsByTagName("HEAD")[0];
-				for (var c in head.childNodes) {
-					if (typeof head.childNodes[c].tagName != "undefined" && (head.childNodes[c].tagName.toLowerCase() == "script") && (typeof head.childNodes[c].src != "undefined")) {
-						if (head.childNodes[c].src.indexOf(this._dirs.plug + "/dashboard/scripts/popup.js") != -1) {
+				var c = $.h.childNodes.length, ch;
+				for (; c--;) {
+					ch = $.h.childNodes[c];
+					if (ch.tagName && (ch.tagName.toLowerCase() == "script") && ch.src) {
+						if (ch.src.indexOf(this._dirs.plug + "/dashboard/scripts/popup.js") != -1) {
 							this._puLinked = true;
 							break;
 						}
 					}
 				}
 				if (!this._puLinked) {
-					var s = document.createElement("SCRIPT");
+					var s = $.d.createElement("SCRIPT");
 					s.type = "text/javascript";
 					s.async = true;
 					s.src = this._dirs.root + this._puScript;
-					head.appendChild(s);
-					var l = document.createElement("LINK");
+					$.h.appendChild(s);
+					var l = $.d.createElement("LINK");
 					l.type = "text/css";
 					l.rel = "stylesheet";
 					l.href = this._dirs.root + this._puStyle;
-					head.appendChild(l);
-					this._puLinked = true;
+					$.h.appendChild(l);
 					this._puLinked = true;
 				}
 			}
@@ -176,8 +199,8 @@ _share.prototype._init = function(last, config) {
 	}
 	if (this.waitElement(this._name + this._instance, "elMain", last)) return this._inited;
 	if (typeof this._page.url == "undefined") {
-		this._page.url = encodeURIComponent(document.location.href);
-		this._page.title = encodeURIComponent(document.title);
+		this._page.url = encodeURIComponent($.d.location.href);
+		this._page.title = encodeURIComponent($.d.title);
 	}
 	var n, c;
 	for (c in this.elMain.childNodes) {
@@ -188,15 +211,16 @@ _share.prototype._init = function(last, config) {
 				this._buttons[c].el = n;
 				if (n.tagName.toLowerCase() == "div") {
 					if (c == "pinterest") {
-						var d = document.createElement("DIV");
+						var d = $.d.createElement("DIV");
 						d.style.opacity = "0";
 						n.appendChild(d);
-						var a = document.createElement("A");
+						var a = $.d.createElement("A");
 						a.style.height = "32px";
 						d.appendChild(a);
    						a.href = "http://www.pinterest.com/pin/create/button/?url=" + this._page.url + "&media=" + "&description=" + this._page.title;
    						a["data-pin-do"] = "buttonBookmark";
-						var f = document.getElementsByTagName('SCRIPT')[0], p = document.createElement('SCRIPT');
+						var f = $.d.getElementsByTagName("SCRIPT")[0],
+							p = $.d.createElement("SCRIPT");
    						p.type = "text/javascript";
    						p.async = true;
    						p.src = "//assets.pinterest.com/js/pinit.js";
@@ -206,15 +230,15 @@ _share.prototype._init = function(last, config) {
    						f = function() {
    							cc++;
    							if (cc > ml) return;
-   							var a;
-   							for (var c in d.childNodes) {
+   							var a, c = d.childNodes.length;
+   							for (; c--;) {
    								a = d.childNodes[c];
    								if ((typeof a.tagName == "undefined") || (a.tagName.toLowerCase() != "a")) {
    									a = null;
 									continue;
    								} else {
 									if (a.className.indexOf("PIN_") != -1) {
-										var t = document.createElement("SPAN");
+										var t = $.d.createElement("SPAN");
 										t.style.fontSize = "100px";
 										t.innerHTML = "extend";
 										a.appendChild(t);
@@ -224,9 +248,9 @@ _share.prototype._init = function(last, config) {
 									}
 								}
 							}
-							if (!a) window.setTimeout(f, 500);
+							if (!a) $.w.setTimeout(f, 500);
    						};
-   						window.setTimeout(f, 500);
+   						$.w.setTimeout(f, 500);
 					} else {
 						this._buttons[c].func = this.onClickButton.bind(this, c);
 						this.eventAdd(n, "click", this._buttons[c].func);
@@ -277,7 +301,7 @@ _share.prototype.onClickButton = function(t) {
 				bo.pu.location.href = url;
 				bo.pu.focus();
 			} else {
-				bo.pu = window.open(url, "", params);
+				bo.pu = $.w.open(url, "", params);
 				if (!bo.pu) {
 					alert("Can't open popup window, please turn off the browser popup blocker.");
 					bo.pu = -1;
@@ -286,13 +310,13 @@ _share.prototype.onClickButton = function(t) {
 			break;
 		case "unknown-sn"://possible popup
 			if (bo.pu == -1) {
-				var cont = document.createElement("DIV");
+				var cont = $.d.createElement("DIV");
 				bo.pu = this.plPu.add({windowed: true, content: cont, showcloser: true});
 				if (bo.pu > -1) {
 					bo.cont = cont;
 					cont.style.width = "560px";
 					cont.style.backgroundColor = "#fff";
-					var frame = document.createElement("IFRAME");
+					var frame = $.d.createElement("IFRAME");
 					frame.style.border = "none";
 					frame.style.margin = "none";
 					frame.style.outline = "none";
@@ -309,7 +333,7 @@ _share.prototype.onClickButton = function(t) {
 			break;
 	}
 };
-this.$_protos["share"] = _share;
+this._protos["share"] = _share;
 
 /**
 * Wrapper object for FB Comments handling
@@ -346,7 +370,6 @@ var _fb = function(id) {
 		root:				false,
 		version:			false
 	};
-	this.elBody			=	null;
 	this.elCollapse		=	null;
 	this.elParent		=	null;
 	this.fFBInit		=	this.FBInit.bind(this);
@@ -381,21 +404,21 @@ _fb.prototype._init = function(last, config) {
 		var loaded = this.FBInjected();
 		if (loaded) {
 			//using external script
-			if (window.FB) {
+			if ($.w.FB) {
 				//FB loaded and inited (will be inited)
-				if ((window.fbAsyncInit && window.fbAsyncInit.hasRun) || this._script.hasId || this._script.isSDK) {
+				if (($.w.fbAsyncInit && $.w.fbAsyncInit.hasRun) || this._script.hasId || this._script.isSDK) {
 					this._script.inited = true;
 				} else {
 					this.FBInit();
 				}
 			} else {
-				if (window.fbAsyncInit) {
+				if ($.w.fbAsyncInit) {
 					//trying to intercept fbAsyncInit
-					var extInit = window.fbAsyncInit;
+					var extInit = $.w.fbAsyncInit;
 					var self = this;
-					window.fbAsyncInit = function(){
+					$.w.fbAsyncInit = function(){
 						try {
-							extInit.apply(window, arguments);
+							extInit.apply($.w, arguments);
 						} catch(e) {
 							self.console(__name_script + " > [Social Monster FB]._init(): FB init error on a thirdparty function [extInit()].");
 							self.console(extInit);
@@ -406,30 +429,17 @@ _fb.prototype._init = function(last, config) {
 				} else {
 					//trying to start anyway...
 					//but fbAsyncInit() function may be overwritten by another thirdparty FB installation
-					window.fbAsyncInit = this.fFBInit;
+					$.w.fbAsyncInit = this.fFBInit;
 					this.console(__name_script + " > [Social Monster FB].init(): Trying to start in the non-secure mode...")
 				}
 			}
 		} else {
-			window.fbAsyncInit = this.fFBInit;
-			var head = document.getElementsByTagName("HEAD")[0];
-			var s = document.createElement("SCRIPT");
+			$.w.fbAsyncInit = this.fFBInit;
+				s = $.d.createElement("SCRIPT");
 			s.type = "text/javascript";
 			s.async = true;
 			s.src = this._config.script;
-			head.appendChild(s);
-		}
-	}
-	if (!this.elBody) {
-		this.elBody = document.body;
-		if (!this.elBody) {
-			if (last) {
-				this._inited = true;
-				this._initErr = true;
-				this.console(__name_script + " > [Social Monster FB]._init(): Can't start without page BODY container.");
-				return true;
-			}
-			return false;
+			$.h.appendChild(s);
 		}
 	}
 	if (!this._script.root) this.FBRoot();
@@ -443,7 +453,7 @@ _fb.prototype._init = function(last, config) {
 		return false;
 	}
 	if (!this.elParent) {
-		this.elParent = document.getElementById(this._name + this._config.instNum);
+		this.elParent = $.d.getElementById(this._name + this._config.instNum);
 		if (!this.elParent) {
 			if (last) {
 				this._inited = true;
@@ -485,13 +495,10 @@ _fb.prototype._configImport = function(cfg) {
 };
 _fb.prototype.FBInjected = function() {
 	this._script.checked = true;
-	var h = document.getElementsByTagName("HEAD")[0];
-	var c = 0, ch,
-		cn = h.childNodes,
-		l = cn.length, pt;
-	for (; c < l; c++) {
-		ch = h.childNodes[c];
-		if (ch.tagName && (ch.tagName.toUpperCase() == "SCRIPT")) {
+	var c = $.h.childNodes.length, ch, pt;
+	for (; c--;) {
+		ch = $.h.childNodes[c];
+		if (ch.tagName && (ch.tagName.toUpperCase() == "SCRIPT") && ch.src) {
 			if (ch.src.indexOf("connect.facebook.net") != -1) {
 				this._script.elem = ch;
 				//version is not used now but may be used in future
@@ -522,15 +529,14 @@ _fb.prototype.FBInit = function() {
 	this.FBRoot();
 };
 _fb.prototype.FBRoot = function() {
-	if (!this.elBody) return;
 	this._script.root = true;
 	//trying to start by own
-	var root = document.getElementById("fb-root") || false;
+	var root = $.d.getElementById("fb-root") || false;
 	if (!root) {
-		root = document.createElement("DIV");
+		root = $.d.createElement("DIV");
 		root.id = "fb-root";
-		if (this.elBody.childNodes.length) this.elBody.insertBefore(root, this.elBody.childNodes[0]);
-		else this.elBody.appendChild(root);
+		if ($.b.childNodes.length) $.b.insertBefore(root, $.b.childNodes[0]);
+		else $.b.appendChild(root);
 	}
 };
 _fb.prototype.onClickHide = function() {
@@ -543,19 +549,19 @@ _fb.prototype.onClickHide = function() {
 			else this.elParent.style.removeAttribute(a[c]);
 		}
 	}
-	if (jQuery) {
-		jQuery(this.elParent).stop(true, true);
-		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
-		else jQuery(this.elParent).slideDown(500);
+	if ($.j) {
+		$.j(this.elParent).stop(true, true);
+		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) $.j(this.elParent).slideUp(500);
+		else $.j(this.elParent).slideDown(500);
 	} else {
 		if (this.elParent.style.display == "block") this.elParent.style.display = "none";
 		else this.elParent.style.display = "block"
 	}
 };
 _fb.prototype.start = function() {
-	var el = document.createElement("DIV");
+	var el = $.d.createElement("DIV");
 	el.className = "fb-comments";
-	el.setAttribute("data-href", document.location.href);
+	el.setAttribute("data-href", $.d.location.href);
 	el.setAttribute("data-numposts", this._config.num_posts);
 	el.setAttribute("data-colorscheme", this._config.colorscheme);
 	el.setAttribute("data-order-by", this._config.order_by);
@@ -563,9 +569,9 @@ _fb.prototype.start = function() {
 	this.elParent.appendChild(el);
 	FB.XFBML.parse(this.elParent);
 	if (this._config.collapse) {
-		this.elCollapse = document.getElementById(this._name + this._config.instNum + "-hide");
-		var ch;
-		for (var c in this.elCollapse.childNodes) {
+		this.elCollapse = $.d.getElementById(this._name + this._config.instNum + "-hide");
+		var c = this.elCollapse.childNodes.length, ch;
+		for (; c--;) {
 			ch = this.elCollapse.childNodes[c];
 			if ((typeof ch.tagName != "undefined") && (ch.tagName.toLowerCase() == "div")) {
 				if (ch.className.indexOf("btn") != -1) break;
@@ -574,7 +580,7 @@ _fb.prototype.start = function() {
 		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
 	}
 };
-this.$_protos["fb"] = _fb;
+this._protos["fb"] = _fb;
 
 /**
 * Wrapper object for Wordpress Comments handling
@@ -608,7 +614,7 @@ _int.prototype._init = function(last, config) {
 		}
 	}
 	if (!this.elParent) {
-		this.elParent = document.getElementById(this._name + this._config.instNum);
+		this.elParent = $.d.getElementById(this._name + this._config.instNum);
 		if (!this.elParent) {
 			if (last) {
 				this._inited = true;
@@ -641,22 +647,22 @@ _int.prototype._configImport = function(cfg) {
 	return true;
 };
 _int.prototype.onClickHide = function() {
-	if (jQuery) {
-		jQuery(this.elParent).stop(true, true);
-		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
-		else jQuery(this.elParent).slideDown(500);
+	if ($.j) {
+		$.j(this.elParent).stop(true, true);
+		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) $.j(this.elParent).slideUp(500);
+		else $.j(this.elParent).slideDown(500);
 	} else {
 		if (this.elParent.style.display == "block") this.elParent.style.display = "none";
 		else this.elParent.style.display = "block"
 	}
 };
 _int.prototype.start = function() {
-	this.elParent = document.getElementById(this._name + this._config.instNum);
+	this.elParent = $.d.getElementById(this._name + this._config.instNum);
 	if (!this.elParent) return;
 	if (this._config.collapse) {
-		this.elCollapse = document.getElementById(this._name + this._config.instNum + "-hide");
-		var ch;
-		for (var c in this.elCollapse.childNodes) {
+		this.elCollapse = $.d.getElementById(this._name + this._config.instNum + "-hide");
+		var c = this.elCollapse.childNodes.length, ch;
+		for (; c--;) {
 			ch = this.elCollapse.childNodes[c];
 			if ((typeof ch.tagName != "undefined") && (ch.tagName.toLowerCase() == "div")) {
 				if (ch.className.indexOf("btn") != -1) break;
@@ -665,7 +671,7 @@ _int.prototype.start = function() {
 		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
 	}
 };
-this.$_protos["int"] = _int;
+this._protos["int"] = _int;
 
 /**
 * Wrapper object for VK Comments handling
@@ -717,26 +723,27 @@ _vk.prototype._init = function(last, config) {
 		}
 	}
 	if (!this._vkLinked) {
-		var segs = this._config.script.split("?");
-		var head = document.getElementsByTagName("HEAD")[0];
-		for (var c in head.childNodes) {
-			if (typeof head.childNodes[c].tagName != "undefined" && (head.childNodes[c].tagName.toLowerCase() == "script") && (typeof head.childNodes[c].src != "undefined")) {
-				if (head.childNodes[c].src.indexOf(segs[0]) != -1) {
+		var segs = this._config.script.split("?"),
+			c = $.h.childNodes.length, ch;
+		for (; c--;) {
+			ch = $.h.childNodes[c];
+			if (ch.tagName && (ch.tagName.toLowerCase() == "script") && ch.src) {
+				if (ch.src.indexOf(segs[0]) != -1) {
 					this._vkLinked = true;
 					break;
 				}
 			}
 		}
 		if (!this._vkLinked) {
-			var s = document.createElement("SCRIPT");
+			var s = $.d.createElement("SCRIPT");
 			s.type = "text/javascript";
 			s.async = true;
 			s.src = this._config.script;
-			head.appendChild(s);
+			$.h.appendChild(s);
 			this._vkLinked = true;
 		}
 	}
-	if (typeof window.VK == "undefined") {
+	if (typeof $.w.VK == "undefined") {
 		if (last) {
 			this._inited = true;
 			this._initErr = true;
@@ -744,6 +751,18 @@ _vk.prototype._init = function(last, config) {
 			return true;
 		}
 		return false;
+	}
+	if (!this.elParent) {
+		this.elParent = $.d.getElementById(this._name + this._config.instNum);
+		if (!this.elParent) {
+			if (last) {
+				this._inited = true;
+				this._initErr = true;
+				this.console(__name_script + " > [Social Monster VK]._init(): Can't start without main DIV container (" + this._name + this._config.instNum  + ")");
+				return true;
+			}
+			return false;
+		}
 	}
 	this._inited = true;
 	this.start();
@@ -780,17 +799,17 @@ _vk.prototype._configImport = function(cfg) {
 	return true;
 };
 _vk.prototype.onClickHide = function() {
-	if (jQuery) {
-		jQuery(this.elParent).stop(true, true);
-		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) jQuery(this.elParent).slideUp(500);
-		else jQuery(this.elParent).slideDown(500);
+	if ($.j) {
+		$.j(this.elParent).stop(true, true);
+		if (this.elParent.style.display == "block" || (this.elParent.style.display == "")) $.j(this.elParent).slideUp(500);
+		else $.j(this.elParent).slideDown(500);
 	} else {
 		if (this.elParent.style.display == "block") this.elParent.style.display = "none";
 		else this.elParent.style.display = "block"
 	}
 };
 _vk.prototype.start = function() {
-	this.elParent = document.getElementById(this._name + this._config.instNum);
+	this.elParent = $.d.getElementById(this._name + this._config.instNum);
 	if (!this.elParent) return;
 	VK.init({
 		apiId: this._config.apiId,
@@ -805,9 +824,9 @@ _vk.prototype.start = function() {
 		width: this._config.width
 	});
 	if (this._config.collapse) {
-		this.elCollapse = document.getElementById(this._name + this._config.instNum + "-hide");
-		var ch;
-		for (var c in this.elCollapse.childNodes) {
+		this.elCollapse = $.d.getElementById(this._name + this._config.instNum + "-hide");
+		var c = this.elCollapse.childNodes.length, ch;
+		for (; c--;) {
 			ch = this.elCollapse.childNodes[c];
 			if ((typeof ch.tagName != "undefined") && (ch.tagName.toLowerCase() == "div")) {
 				if (ch.className.indexOf("btn") != -1) break;
@@ -816,7 +835,7 @@ _vk.prototype.start = function() {
 		if (ch) this.eventAdd(ch, "click", this.onClickHide.bind(this));
 	}
 };
-this.$_protos["vk"] = _vk;
+this._protos["vk"] = _vk;
 
 };
 social_monster.prototype._instance = function(config) {
@@ -835,10 +854,10 @@ social_monster.prototype._instance = function(config) {
 		obj:		null,
 		parent:		this
 	};
-	this.$_instances.push(i);
-	i.id = this.$_instances.length - 1;
+	this._instances.push(i);
+	i.id = this._instances.length - 1;
 	//creating
-	if (this.$_protos[config.type]) i.obj = new this.$_protos[config.type](i.id);
+	if (this._protos[config.type]) i.obj = new this._protos[config.type](i.id);
 	else return false;
 	//extending
 	i.obj.console = this.console;
@@ -852,15 +871,25 @@ social_monster.prototype._instance = function(config) {
 	return i;
 };
 social_monster.prototype._instancesInit = function() {
-	if (this.$_initTm) {
-		window.clearTimeout(this.$_initTm);
-		this.$_initTm = false;
+	if (this._initTm) {
+		$.w.clearTimeout(this._initTm);
+		this._initTm = false;
 	}
+	//checking for BODY
+	if (!$.b) {
+		var b = $.d.getElementsByTagName("BODY");
+		if (b.length) $.b = b[0];
+		else {
+			this._initTm = $.w.setTimeout(this.fInstancesInit, this._initSleep);
+			return;
+		}
+	}
+	//initing plugins
 	var c = 0, err, i,
-		l = this.$_instances.length,
+		l = this._instances.length,
 		inited = true, res;
 	for (; c < l; c++) {
-		i = this.$_instances[c];
+		i = this._instances[c];
 		if (i.inited) continue;
 		i.init.tryCur++;
 		if (i.init.tryCur > i.init.tryMax) {
@@ -872,8 +901,8 @@ social_monster.prototype._instancesInit = function() {
 			if (typeof i.obj._init == "function") {
 				try {
 					res = i.obj._init(i.init.last, i.config, i);
-					//this.console("[" + i.obj._name + "/" + i.init.tryCur + "]: " + (res?"true":"false"));
 					if (typeof res !== "boolean") res = true;
+					if (res) this.console(__name_script + " > " + this._name + "._instancesInit(): Plugin inited [" + i.obj._name + "].");
 				} catch(e) {
 					res = true;
 					err = true;
@@ -894,15 +923,15 @@ social_monster.prototype._instancesInit = function() {
 		}
 	}
 	if (!inited) {
-		this.$_initTm = window.setTimeout(this.fInstancesInit, this.$_initSleep);
-		//this.console("Timeout set: " + this.$_initTm);
+		this._initTm = $.w.setTimeout(this.fInstancesInit, this._initSleep);
+		//this.console("Timeout set: " + this._initTm);
 	}
 };
 /*
 * Shared functions
 */
 social_monster.prototype.console = function(msg) {
-	if (this.$_console) window.console.log(msg);
+	if (this._console) $.w.console.log(msg);
 };
 social_monster.prototype.dlgAlert = function(msg, type, wd) {
 	var el = null;
@@ -925,7 +954,7 @@ social_monster.prototype.dlgAlert = function(msg, type, wd) {
 		}
 	} else {
 		if (typeof msg == "string") {
-			el = document.createElement("DIV");
+			el = $.d.createElement("DIV");
 			el.className = "ab-body";
 			el.innerHTML = msg;
 		} else {
@@ -938,13 +967,13 @@ social_monster.prototype.dlgAlert = function(msg, type, wd) {
 		if ((type != "inf") && (type != "wrn") && (type != "err")) type = "inf";
 	}
 	if (typeof wd != "number") wd = 300;
-	var m = document.createElement("DIV");
+	var m = $.d.createElement("DIV");
 	m.className = this._name;
 	m.style.width = ("").concat(wd, "px");
-	var el1 = document.createElement("DIV");
+	var el1 = $.d.createElement("DIV");
 	el1.className = "alert-box";
 	m.appendChild(el1);
-	var el2 = document.createElement("DIV");
+	var el2 = $.d.createElement("DIV");
 	el2.className = "ab-title " + type;
 	switch (type) {
 		case "wrn":
@@ -959,9 +988,9 @@ social_monster.prototype.dlgAlert = function(msg, type, wd) {
 	}
 	el1.appendChild(el2);
 	el1.appendChild(el);
-	el2 = document.createElement("DIV");
+	el2 = $.d.createElement("DIV");
 	el2.className = "ab-buttons";
-	var btn = document.createElement("DIV");
+	var btn = $.d.createElement("DIV");
 	btn.className = "btn cl";
 	btn.innerHTML = "Close";
 	el2.appendChild(btn);
@@ -996,7 +1025,7 @@ social_monster.prototype.dlgConfirm = function(msg, cb, title, wd) {
 		}
 	} else {
 		if (typeof msg == "string") {
-			el = document.createElement("DIV");
+			el = $.d.createElement("DIV");
 			el.className = "ab-body";
 			el.innerHTML = msg;
 		} else {
@@ -1007,24 +1036,24 @@ social_monster.prototype.dlgConfirm = function(msg, cb, title, wd) {
 	if (typeof cb != "function") cb = false;
 	if (typeof title != "string") title = "Confirm the action";
 	if (typeof wd != "number") wd = 300;
-	var m = document.createElement("DIV");
+	var m = $.d.createElement("DIV");
 	m.className = this._name;
 	m.style.width = ("").concat(wd, "px");
-	var el1 = document.createElement("DIV");
+	var el1 = $.d.createElement("DIV");
 	el1.className = "alert-box";
 	m.appendChild(el1);
-	var el2 = document.createElement("DIV");
+	var el2 = $.d.createElement("DIV");
 	el2.className = "ab-title inf";
 	el2.innerHTML = title;
 	el1.appendChild(el2);
 	el1.appendChild(el);
-	el2 = document.createElement("DIV");
+	el2 = $.d.createElement("DIV");
 	el2.className = "ab-buttons";
-	var btn1 = document.createElement("DIV");
+	var btn1 = $.d.createElement("DIV");
 	btn1.className = "btn cl";
 	btn1.innerHTML = "Cancel";
 	el2.appendChild(btn1);
-	var btn2 = document.createElement("DIV");
+	var btn2 = $.d.createElement("DIV");
 	btn2.className = "btn ok";
 	btn2.innerHTML = "OK";
 	el2.appendChild(btn2);
@@ -1063,8 +1092,8 @@ social_monster.prototype.eventFix = function(e) {
 	e = e || window.event
 	// добавить pageX/pageY для IE
 	if (e.pageX == null && e.clientX != null) {
-		var html = document.documentElement;
-		var body = document.body;
+		var body = $.b,
+			html = $.d.documentElement;
 		e.pageX = e.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0);
 		e.pageY = e.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0);
 	}
@@ -1125,7 +1154,7 @@ social_monster.prototype.waitElement = function(elname, prop, last, store_as_obj
 		if (!this[prop]) get = true;
 	}
 	if (get) {
-		var el = document.getElementById(elname);
+		var el = $.d.getElementById(elname);
 		if (!el) {
 			if (last) {
 				this.console(__name_script + " > " + this._name + ".waitElement() > Плагин не инициализирован - элемент [" + elname + "] не найден.");
