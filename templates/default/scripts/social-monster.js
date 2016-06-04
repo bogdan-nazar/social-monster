@@ -1,6 +1,6 @@
 /*
 Social Monster client App
-Version: 1.0.9
+Version: 1.0.10
 Description: Adds various social features - likes, comments, etc.
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/

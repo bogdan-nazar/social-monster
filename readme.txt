@@ -4,7 +4,7 @@ Donate link: mailto:me@bogdan-nazar.ru
 Tags: facebook, vkontakte, social, comments, share
 Requires at least: 3.2.1
 Tested up to: 4.5.2
-Stable tag: 1.0.9
+Stable tag: 1.0.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,9 @@ No questions yet.
 2. Dashboard options view.
 
 == Changelog ==
+
+= 1.0.10 =
+Quick fix to broken social buttons.
 
 = 1.0.9 =
 1) Bugfix related to VK comments widget periodically does not display on the page.

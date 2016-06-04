@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Social Monster
-Version: 1.0.9
+Version: 1.0.10
 Description: Adds various social features - likes, comments, etc.
 Requires at least: 3.2.1
 Tested up to: 4.5.2
 Plugin URI: http://www.bogdan-nazar.ru/wordpress/my-plugins/social-monster
 Author: Bogdan Nazar
 Author URI: http://www.bogdan-nazar.ru/wordpress/
-Stable tag: 1.0.9
+Stable tag: 1.0.10
 License: GPLv2 or later
 */
 define("SOCIAL_MONSTER_ON",1,false);
@@ -180,7 +180,7 @@ final class social_monster
 	private $sessionTime		=	0;
 	private $sessionTm			=	360;
 	private $title				=	"Social Monster";
-	private $version			=	array(1,0,9);
+	private $version			=	array(1,0,10);
 
 	private function _($id,$render=false)
 	{
@@ -1233,7 +1233,7 @@ final class social_monster
 						$tag="div";
 				}
 				echo"
-				--><{$tag}> class=\"btn {$btn}>\" title=\"{$title}>\"></{$tag}>><!--";
+				--><{$tag} class=\"btn {$btn}\" title=\"{$title}\"></{$tag}><!--";
 			}
 			$data=array();
 			$data["type"]="type:\"share\"";
